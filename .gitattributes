@@ -1,0 +1,11 @@
+# Keep LF everywhere (Prettier, CI on Linux, shell scripts), also on Windows checkouts.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.woff binary
+*.woff2 binary

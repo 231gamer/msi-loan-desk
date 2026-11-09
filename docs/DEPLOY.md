@@ -91,8 +91,8 @@ Never paste keys or passwords into chat, issues or code. They go only into the S
 
 ## 5. Updates later
 
-- **Code changes:** push to `main`. Vercel deploys by itself.
-- **New database migrations** (new files in `supabase/migrations`): run `pnpm supabase db push` against the linked project before or right after the deploy.
+- **Code changes:** on a branch with a pull request; merging it into `main` deploys (Vercel deploys `main` by itself). See `docs/OPERATIONS.md` section 3.
+- **New database migrations** (new files in `supabase/migrations`): right after the merge, run `scripts/hosted-db.sh push` (or `pnpm supabase db push` against the linked project).
 - **Backups:** follow `docs/OPERATIONS.md` section 6 (weekly `scripts/backup.sh`, and a restore test before go-live).
 
 ## 6. Optional: a demo site

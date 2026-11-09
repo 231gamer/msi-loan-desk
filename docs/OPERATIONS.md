@@ -11,6 +11,19 @@ How LoanDesk runs day to day, how it is deployed and backed up, and what to do w
 | Daily job | Supabase `pg_cron`, job `daily-accruals`, 01:00 UTC (= Monrovia) | Overdue marking, weekly penalties, recovery flags (SPEC 5.5) |
 | Health check | `GET /api/health` | `{"status":"ok","database":"ok","lastAccrualRun":…}`; HTTP 503 when the database does not answer |
 
+### The live environment (set up 2026-11-09)
+
+| Part | Value |
+| --- | --- |
+| Address for staff | https://www.methodsolutionslr.com (`methodsolutionslr.com` redirects there; `msi-loan-desk.vercel.app` also works) |
+| Code | GitHub `231gamer/msi-loan-desk` (private), branch `main` |
+| Web app | Vercel project `msi-loan-desk`; every push to `main` deploys to production |
+| Database | Supabase project `msi-loandesk`, ref `nvtakgkiuasuywxgjaay`, region eu-west-1 (Ireland), **free plan** (no backups, pauses when idle: upgrade to Pro before real use). `app_environment` = `production` |
+| Admin | Corex-admin (Foday's email) |
+| Secrets | Supabase and Vercel dashboards, Foday's password manager, and the ignored `.env.staging` on Foday's PC (`SUPABASE_DB_URL`, URL, anon and service role keys). Never in the repository or chat |
+
+There is no separate staging project: the project first created as staging was switched to production on 2026-11-09. Test risky changes locally (`pnpm db:start`, demo seed) before merging.
+
 ## 2. Environment variables
 
 Set in Vercel (Production and Preview) and in `.env.local` for development (`pnpm env:local` writes the local values).
@@ -25,10 +38,17 @@ Set in Vercel (Production and Preview) and in `.env.local` for development (`pnp
 
 ## 3. Deploying
 
-1. Merge to `main` after approval (CI must be green: lint, types, unit, database tests, e2e, `pnpm audit`).
-2. Apply new migrations to production: `pnpm supabase link --project-ref <ref>` once, then `pnpm supabase db push`. Migrations are append-only; never edit one that is already in production.
-3. Vercel builds `main` automatically. Check `/api/health` afterwards.
-4. After a migration that adds RPCs, regenerate types locally (`pnpm types`) and commit them.
+1. Work on a branch and open a pull request into `main`. CI must be green (lint, types, unit, database tests, e2e, `pnpm audit`). Never push to `main` directly: Vercel deploys it to the live site at once.
+2. Foday approves and merges. Vercel builds `main` and the new version is live in about 2 minutes.
+3. If the pull request adds migrations, apply them to the live database right after the merge (the new code may need them):
+   ```bash
+   scripts/hosted-db.sh migrations   # shows which are not applied yet
+   scripts/hosted-db.sh push         # applies them; never seeds
+   scripts/hosted-db.sh advisors     # security advisor must stay clean
+   ```
+   The script reads `SUPABASE_DB_URL` from the ignored `.env.hosted` or `.env.staging` file (no `supabase login` or `link` needed). The alternative is `pnpm supabase link --project-ref <ref>` once, then `pnpm supabase db push`. Migrations are append-only; never edit one that is already in production. Take a backup (section 6) before a migration that changes or moves data.
+4. Check `/api/health` afterwards. After a migration that adds RPCs, regenerate types locally (`pnpm types`) and commit them.
+5. To undo a bad deploy: Vercel → Deployments → the previous one → **Promote to Production** (instant). Database changes are not undone by this; fix them with a new migration.
 
 Never run `pnpm seed:demo` against production. Demo data belongs in the demo project only.
 
