@@ -14,8 +14,9 @@ const inter = Inter({
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("app");
+  // Pages that set their own title show "<Page> · MSI-Dashboard"; the rest show the app title.
   return {
-    title: t("title"),
+    title: { default: t("title"), template: `%s · ${t("title")}` },
     description: t("description"),
     robots: { index: false, follow: false },
   };
