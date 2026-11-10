@@ -35,6 +35,7 @@ export async function AppBottomNav() {
         moreTitle: tNav("moreTitle"),
         close: tNav("close"),
         signOut: t("signOut"),
+        changePassword: t("changePassword"),
       }}
     />
   );

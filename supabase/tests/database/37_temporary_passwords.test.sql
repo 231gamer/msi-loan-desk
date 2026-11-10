@@ -1,7 +1,7 @@
 -- Temporary passwords and the forced password change (FR-01, SPEC 4 and 11).
 begin;
 \ir _helpers.psql
-select plan(33);
+select plan(36);
 
 create temporary table ids (name text primary key, id uuid) on commit drop;
 grant all on ids to authenticated;
@@ -97,6 +97,30 @@ select is(tests.value_as('authenticated', (select id from ids where name = 'cash
   'cashier', 'the cashier has its role back');
 select matches(tests.try_as('authenticated', (select id from ids where name = 'cashier'),
   $$select public.complete_password_change()$$), '^INVALID_STATE', 'a second call without a new change is refused');
+
+-- A session that signed in before the requirement must sign in again (amr timestamp in the token).
+create function tests.as_session(p_user uuid, p_signed_in timestamptz, p_sql text) returns text
+language plpgsql as $$
+declare v_result text;
+begin
+  perform set_config('request.jwt.claims', json_build_object('sub', p_user, 'role', 'authenticated',
+    'amr', json_build_array(json_build_object('method', 'password', 'timestamp', floor(extract(epoch from p_signed_in))::bigint)))::text, true);
+  perform set_config('role', 'authenticated', true);
+  begin
+    execute p_sql into v_result;
+  exception when others then
+    v_result := sqlerrm;
+  end;
+  perform tests.unbecome();
+  return v_result;
+end $$;
+select is(tests.as_session((select id from ids where name = 'officer'), now() - interval '1 hour',
+  'select sign_in_again::text from public.my_account()'), 'true', 'a session from before the requirement must sign in again');
+select is(tests.as_session((select id from ids where name = 'officer'), now() + interval '1 second',
+  'select sign_in_again::text from public.my_account()'), 'false', 'a session signed in afterwards may continue');
+update auth.users set encrypted_password = 'hash-intruder' where id = (select id from ids where name = 'officer');
+select matches(tests.as_session((select id from ids where name = 'officer'), now() - interval '1 hour',
+  'select public.complete_password_change()::text'), '^SIGN_IN_AGAIN', 'the database refuses the change from an old session');
 
 -- An expired temporary password cannot be completed.
 update public.profiles set temp_password_expires_at = now() - interval '1 minute' where id = (select id from ids where name = 'officer');

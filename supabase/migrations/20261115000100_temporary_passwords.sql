@@ -21,10 +21,13 @@ comment on column public.profiles.password_changed_at is
 create table public.password_fingerprints (
   user_id uuid primary key references public.profiles (id) on delete restrict,
   fingerprint text not null check (fingerprint ~ '^[0-9a-f]{64}$'),
-  recorded_at timestamptz not null default now()
+  recorded_at timestamptz not null default now(),
+  required_at timestamptz
 );
 comment on table public.password_fingerprints is
   'SHA-256 of the Supabase Auth password hash when a temporary password is issued or a password is changed, so complete_password_change can prove the password changed. Never the password.';
+comment on column public.password_fingerprints.required_at is
+  'When the admin required a new password. Only a session signed in after this may set it, so a session that was open before a reset cannot take over the account.';
 alter table public.password_fingerprints enable row level security;
 revoke all on public.password_fingerprints from public, anon, authenticated, service_role;
 
@@ -219,26 +222,44 @@ as $$
 $$;
 revoke execute on function public.password_fingerprint(uuid) from public, anon, authenticated, service_role;
 
--- Internal: remembers the current fingerprint for the user.
-create or replace function public.record_password_fingerprint(p_user_id uuid)
+-- Internal: remembers the current fingerprint for the user; p_required marks when a new password
+-- was required (null once the user has set their own).
+create or replace function public.record_password_fingerprint(p_user_id uuid, p_required boolean)
 returns void
 language plpgsql
 security definer
 set search_path = public
 as $$
-declare
-  v_fingerprint text := password_fingerprint(p_user_id);
 begin
-  if v_fingerprint is null then
-    delete from password_fingerprints where user_id = p_user_id;
-    return;
-  end if;
-  insert into password_fingerprints (user_id, fingerprint, recorded_at)
-  values (p_user_id, v_fingerprint, now())
-  on conflict (user_id) do update set fingerprint = excluded.fingerprint, recorded_at = excluded.recorded_at;
+  insert into password_fingerprints (user_id, fingerprint, recorded_at, required_at)
+  values (p_user_id, coalesce(password_fingerprint(p_user_id), repeat('0', 64)), now(),
+          case when p_required then now() end)
+  on conflict (user_id) do update
+    set fingerprint = excluded.fingerprint, recorded_at = excluded.recorded_at, required_at = excluded.required_at;
 end
 $$;
-revoke execute on function public.record_password_fingerprint(uuid) from public, anon, authenticated, service_role;
+revoke execute on function public.record_password_fingerprint(uuid, boolean) from public, anon, authenticated, service_role;
+
+-- Internal: true when the caller's session signed in before the admin required a new password
+-- (the newest "amr" timestamp in the access token, as src/lib/auth/session.ts reads it). Such a
+-- session must sign in again with the temporary password before it may set a new one.
+create or replace function public.session_predates_requirement(p_user_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((
+    select (select max((entry ->> 'timestamp')::bigint)
+              from jsonb_array_elements(coalesce(auth.jwt() -> 'amr', '[]'::jsonb)) entry
+             where jsonb_typeof(entry -> 'timestamp') = 'number')
+           < floor(extract(epoch from f.required_at))::bigint
+      from password_fingerprints f
+     where f.user_id = p_user_id and f.required_at is not null
+  ), false);
+$$;
+revoke execute on function public.session_predates_requirement(uuid) from public, anon, authenticated, service_role;
 
 -- Internal: hours from the setting (72 when missing).
 create or replace function public.temp_password_hours()
@@ -286,7 +307,8 @@ returns table (
   must_change_password boolean,
   temp_password_expires_at timestamptz,
   temp_password_expired boolean,
-  password_changed_at timestamptz
+  password_changed_at timestamptz,
+  sign_in_again boolean
 )
 language sql
 stable
@@ -296,7 +318,8 @@ as $$
   select p.id, p.full_name, u.email::text, p.role, p.active, b.id, b.code, b.name,
          p.must_change_password, p.temp_password_expires_at,
          p.must_change_password and p.temp_password_expires_at is not null and p.temp_password_expires_at <= now(),
-         p.password_changed_at
+         p.password_changed_at,
+         p.must_change_password and session_predates_requirement(p.id)
     from profiles p
     join auth.users u on u.id = p.id
     left join branches b on b.id = p.branch_id
@@ -334,7 +357,7 @@ begin
      set must_change_password = true, temp_password_expires_at = v_expires,
          updated_at = app_now(), updated_by = auth.uid()
    where id = p_user_id;
-  perform record_password_fingerprint(p_user_id);
+  perform record_password_fingerprint(p_user_id, true);
   return v_expires;
 end
 $$;
@@ -372,7 +395,7 @@ begin
        set must_change_password = true, temp_password_expires_at = v_expires,
            updated_at = app_now(), updated_by = auth.uid()
      where id = v_profile.id;
-    perform record_password_fingerprint(v_profile.id);
+    perform record_password_fingerprint(v_profile.id, true);
   end loop;
   return v_count;
 end
@@ -405,6 +428,9 @@ begin
      and v_profile.temp_password_expires_at <= now() then
     raise exception 'TEMP_PASSWORD_EXPIRED: the temporary password has expired' using errcode = '42501';
   end if;
+  if v_profile.must_change_password and session_predates_requirement(v_user) then
+    raise exception 'SIGN_IN_AGAIN: sign in again with the temporary password first' using errcode = '42501';
+  end if;
   v_current := password_fingerprint(v_user);
   select fingerprint into v_previous from password_fingerprints where user_id = v_user;
   if v_current is null or v_current is not distinct from v_previous then
@@ -415,7 +441,7 @@ begin
      set must_change_password = false, temp_password_expires_at = null, password_changed_at = now(),
          updated_at = app_now(), updated_by = v_user
    where id = v_user;
-  perform record_password_fingerprint(v_user);
+  perform record_password_fingerprint(v_user, false);
   -- After the update, so the row records the user's role. Never the password.
   perform write_audit('auth.password_changed', 'profile', v_user::text, null,
     jsonb_build_object('forced', v_profile.must_change_password));

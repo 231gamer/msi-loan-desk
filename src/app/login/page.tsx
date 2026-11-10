@@ -8,8 +8,14 @@ import { blankIfPending } from "@/lib/text";
 
 import { LoginForm } from "./login-form";
 
-type Notice = "signed-out" | "inactive" | "expired";
-const NOTICES: ReadonlySet<string> = new Set<Notice>(["signed-out", "inactive", "expired"]);
+type Notice = "signed-out" | "inactive" | "expired" | "temp-expired" | "sign-in-again";
+const NOTICES: ReadonlySet<string> = new Set<Notice>([
+  "signed-out",
+  "inactive",
+  "expired",
+  "temp-expired",
+  "sign-in-again",
+]);
 
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (

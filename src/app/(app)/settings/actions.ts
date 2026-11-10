@@ -3,6 +3,7 @@
 import { randomUUID } from "node:crypto";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 
 import { getCurrentStaff } from "@/lib/auth/staff";
 import { logServerError } from "@/lib/log";
@@ -19,6 +20,7 @@ import {
   companySchema,
   newUserSchema,
   productSchema,
+  requireChangeSchema,
   rulesSchema,
   templatesSchema,
   userSchema,
@@ -217,6 +219,7 @@ export async function saveRules(values: RulesValues): Promise<ActionResult<{ cha
     ["payments.allocation_order", parsed.data.allocationOrder],
     ["migration.go_live_date", parsed.data.goLiveDate === "" ? null : parsed.data.goLiveDate],
     ["due.upcoming_days", Number(parsed.data.dueUpcomingDays)],
+    ["auth.temp_password_hours", Number(parsed.data.tempPasswordHours)],
   ];
 
   let changed = 0;
@@ -242,7 +245,9 @@ export async function setClock(values: ClockValues): Promise<ActionResult> {
   return code === null ? done(undefined) : { ok: false, code };
 }
 
-export async function createUser(values: NewUserValues): Promise<ActionResult<{ password: string }>> {
+export async function createUser(
+  values: NewUserValues,
+): Promise<ActionResult<{ password: string; expiresAt: string }>> {
   const admin = await requireAdmin();
   if (!admin.ok) return admin;
   const parsed = newUserSchema.safeParse(values);
@@ -275,7 +280,58 @@ export async function createUser(values: NewUserValues): Promise<ActionResult<{ 
     await auth.auth.admin.deleteUser(created.user.id);
     return fail(errorCodeFrom(error), "settings.createUser", admin.userId);
   }
-  return done({ password });
+  // The password is temporary: the new user must choose their own at first sign-in.
+  const flagged = await requireChange(created.user.id, "created", "settings.createUser", admin.userId);
+  if (!flagged.ok) return flagged;
+  return done({ password, expiresAt: flagged.expiresAt });
+}
+
+/** Marks the account "must set a new password" (audited in the database); returns the expiry. */
+async function requireChange(
+  userId: string,
+  reason: "created" | "reset" | { text: string },
+  where: string,
+  adminId: string,
+): Promise<{ ok: true; expiresAt: string } | { ok: false; code: ErrorCode }> {
+  const t = await getTranslations("settings.users.reasons");
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("admin_require_password_change", {
+    p_user_id: userId,
+    p_reason: typeof reason === "string" ? t(reason) : reason.text,
+  });
+  if (error !== null) return fail(errorCodeFrom(error), where, adminId);
+  return { ok: true, expiresAt: data };
+}
+
+/* Admin: the user must set a new password at next sign-in, keeping their current one until then. */
+export async function requireNewPassword(
+  userId: string,
+  reason: string,
+): Promise<ActionResult<{ expiresAt: string }>> {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin;
+  const parsed = requireChangeSchema.safeParse({ userId, reason });
+  if (!parsed.success) return fail("INVALID_INPUT", "settings.requireNewPassword");
+  const flagged = await requireChange(
+    parsed.data.userId,
+    { text: parsed.data.reason },
+    "settings.requireNewPassword",
+    admin.userId,
+  );
+  if (!flagged.ok) return flagged;
+  return done({ expiresAt: flagged.expiresAt });
+}
+
+/* Admin, at go-live: every active account (the admin's own too) must set a new password. */
+export async function requireNewPasswordForAll(reason: string): Promise<ActionResult<{ count: number }>> {
+  const admin = await requireAdmin();
+  if (!admin.ok) return admin;
+  const parsed = requireChangeSchema.shape.reason.safeParse(reason);
+  if (!parsed.success) return fail("INVALID_INPUT", "settings.requireNewPasswordForAll");
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.rpc("admin_require_password_change_all", { p_reason: parsed.data });
+  if (error !== null) return fail(errorCodeFrom(error), "settings.requireNewPasswordForAll", admin.userId);
+  return done({ count: data });
 }
 
 export async function updateUser(values: UserValues): Promise<ActionResult> {
@@ -296,7 +352,9 @@ export async function updateUser(values: UserValues): Promise<ActionResult> {
   return done(undefined);
 }
 
-export async function resetPassword(userId: string): Promise<ActionResult<{ password: string }>> {
+export async function resetPassword(
+  userId: string,
+): Promise<ActionResult<{ password: string; expiresAt: string }>> {
   const admin = await requireAdmin();
   if (!admin.ok) return admin;
   if (!/^[0-9a-f-]{36}$/.test(userId)) return fail("INVALID_INPUT", "settings.resetPassword");
@@ -324,7 +382,10 @@ export async function resetPassword(userId: string): Promise<ActionResult<{ pass
     });
     return fail(errorCodeFrom(auditError), "settings.resetPassword", admin.userId);
   }
-  return done({ password });
+  // Supabase Auth has ended the user's sessions; the new password is temporary.
+  const flagged = await requireChange(userId, "reset", "settings.resetPassword", admin.userId);
+  if (!flagged.ok) return flagged;
+  return done({ password, expiresAt: flagged.expiresAt });
 }
 
 /* upsert_loan_product (SPEC 4: admin; FR-06). Rates go to the database as whole basis points. */

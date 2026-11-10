@@ -35,13 +35,63 @@
       "invalidInput": "Enter your email address and password.",
       "invalidCredentials": "The email or password is not correct.",
       "inactive": "This account is not active. Ask the administrator to check it.",
+      "tempExpired": "Your temporary password has expired. Ask the administrator for a new one.",
       "rateLimited": "Too many attempts. Wait a few minutes, then try again.",
       "unavailable": "Sign-in is not available right now. Try again in a minute."
     },
     "notices": {
       "signed-out": "You have signed out.",
       "inactive": "This account is not active. Ask the administrator to check it.",
-      "expired": "For security, sessions end after 12 hours. Sign in again."
+      "expired": "For security, sessions end after 12 hours. Sign in again.",
+      "temp-expired": "Your temporary password has expired. Ask the administrator for a new one.",
+      "sign-in-again": "The administrator asked you to set a new password. Sign in again with your temporary or current password to continue."
+    }
+  },
+  "account": {
+    "password": {
+      "metaTitle": "Password",
+      "forcedTitle": "Set your own password",
+      "forcedIntro": "Welcome, {name}. You signed in with a temporary password from the administrator. Choose your own password to continue; nobody else will know it.",
+      "changeTitle": "Change password",
+      "changeIntro": "Enter your current password, then choose a new one. You will stay signed in here and be signed out on your other devices.",
+      "expires": "Your temporary password works until {at}.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Type the new password again",
+      "rulesHeading": "Your new password must:",
+      "rules": {
+        "tooShort": "have at least 10 characters (a few words together work well)",
+        "tooLong": "be no longer than 72 characters",
+        "containsName": "not contain your name or the name part of your email",
+        "common": "not be a commonly used password",
+        "repeated": "not be one character or a short pattern repeated",
+        "sequence": "not be a run such as 1234567890 or qwertyuiop"
+      },
+      "ruleMet": "(done)",
+      "rulesNote": "No symbols or capital letters are needed. It must also differ from your current password.",
+      "problems": {
+        "tooShort": "Use at least 10 characters.",
+        "tooLong": "Use no more than 72 characters.",
+        "containsName": "Do not use your name or the name part of your email.",
+        "common": "This password is too common. Choose something less predictable.",
+        "repeated": "Do not repeat one character or a short pattern.",
+        "sequence": "Do not use a run of keys or numbers such as 1234567890 or qwertyuiop."
+      },
+      "errors": {
+        "invalidInput": "Fill in every field.",
+        "mismatch": "The two new passwords are not the same.",
+        "currentRequired": "Enter your current password.",
+        "currentWrong": "The current password is not correct.",
+        "samePassword": "Choose a password different from your current or temporary one.",
+        "rateLimited": "Too many attempts. Wait a few minutes, then try again.",
+        "reauthenticate": "For security, sign out and sign in again, then change your password.",
+        "unavailable": "The password could not be saved right now. Try again in a minute."
+      },
+      "submit": "Change password",
+      "submitForced": "Save my password",
+      "saving": "Saving…",
+      "back": "Back to the dashboard",
+      "signOut": "Sign out"
     }
   },
   "dashboard": {
@@ -49,6 +99,7 @@
     "greeting": "Good day, {name}",
     "today": "{date} · {branch}",
     "forbidden": "You do not have access to that page. You have been brought back to the dashboard.",
+    "passwordChanged": "Your new password is saved. You have been signed out on your other devices.",
     "loading": "Loading your dashboard",
     "error": "The figures could not be loaded. Refresh the page; if it keeps failing, tell the administrator.",
     "loans": "{count, plural, one {# loan} other {# loans}}",
@@ -162,6 +213,7 @@
     "product": "Loan management",
     "logoAlt": "{company} logo",
     "signOut": "Sign out",
+    "changePassword": "Change password",
     "allBranches": "All branches",
     "skipToContent": "Skip to main content",
     "account": "Signed in as {name}, {role}",
@@ -217,7 +269,9 @@
       "allocation": "Use each part once.",
       "branchRequired": "Cashiers and loan officers need a branch.",
       "timestamp": "Enter a date and time.",
-      "days": "Enter a whole number of days from 1 to 60."
+      "days": "Enter a whole number of days from 1 to 60.",
+      "hours": "Enter a whole number of hours from 1 to 720.",
+      "reason": "Give a reason (at least 3 characters)."
     },
     "company": {
       "heading": "Company header",
@@ -295,7 +349,9 @@
       "clockSet": "Set clock",
       "clockReal": "Use the real time",
       "dueUpcomingDays": "Due list window (days)",
-      "dueUpcomingDaysHelp": "How far ahead the due list shows loans that fall due soon."
+      "dueUpcomingDaysHelp": "How far ahead the due list shows loans that fall due soon.",
+      "tempPasswordHours": "Temporary password valid for (hours)",
+      "tempPasswordHoursHelp": "Passwords the administrator gives out (new user, reset, or a required change) stop working after this many hours. 72 hours is 3 days."
     },
     "users": {
       "heading": "Users",
@@ -316,10 +372,32 @@
       "create": "Create user",
       "resetPassword": "Reset password",
       "resetting": "Resetting…",
-      "resetConfirm": "Reset the password for {name}? Their current password stops working at once.",
-      "passwordHeading": "One-time password",
-      "passwordIntro": "Give this password to {name} in person. It is shown only once and is not stored anywhere you can see it again.",
+      "resetConfirm": "Reset the password for {name}? Their current password stops working at once and they are signed out everywhere.",
+      "passwordHeading": "Temporary password",
+      "passwordIntro": "Give this password to {name} in person. It is shown only once and is not stored anywhere you can see it again. At first sign-in they must choose their own password.",
+      "passwordExpires": "It stops working on {at}.",
+      "copy": "Copy password",
+      "copied": "Copied",
+      "copyFailed": "Could not copy. Select the password and copy it by hand.",
       "passwordDone": "I have noted it",
+      "mustSet": "Must set password (expires {at})",
+      "tempExpired": "Temporary password expired",
+      "requireNew": "Require a new password",
+      "requireNewHeading": "Require a new password for {name}",
+      "requireNewIntro": "{name} keeps their current password until their next sign-in, then must choose a new one within the time set under Rules. If you think someone else knows the password, use Reset password instead: it also signs them out everywhere.",
+      "requireAll": "Require a new password for everyone",
+      "requireAllHeading": "Require a new password for everyone",
+      "requireAllIntro": "Use this at go-live. Every active account, yours included, must choose a new password at its next sign-in. Nobody is signed out now, but each person can only set a password until they do.",
+      "reason": "Reason",
+      "reasonHelp": "Saved in the audit log, for example \"Go-live\".",
+      "requireConfirm": "Require a new password",
+      "requireAllConfirm": "Yes, require it for everyone",
+      "requireDone": "{name} must set a new password at next sign-in (by {at}).",
+      "requireAllDone": "{count, plural, one {# account} other {# accounts}} must set a new password at next sign-in.",
+      "reasons": {
+        "created": "Account created",
+        "reset": "Password reset by the administrator"
+      },
       "you": "You",
       "selfNote": "You cannot change your own role or deactivate yourself.",
       "empty": "No users yet."

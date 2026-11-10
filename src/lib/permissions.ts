@@ -30,6 +30,7 @@ export const ROUTES = {
   "/api/reminder/[loanId]": "staff", // SPEC 10.3: logs the tap, then opens WhatsApp
   "/api/reports/[report]": ["ceo", "manager", "accountant", "admin"], // SPEC 10.2: CSV export
 
+  "/account/password": "staff", // every signed-in account, including one that must set a new password
   "/dashboard": "staff",
   "/customers": "staff",
   "/customers/new": ["loan_officer", "manager", "admin"], // admin: SPEC 4 "Create customer"

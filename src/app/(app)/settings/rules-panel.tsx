@@ -71,7 +71,12 @@ function RulesForm({ rules, currency }: { rules: RulesValues; currency: string }
   const toggle = (
     name: Exclude<
       keyof RulesValues,
-      "loanManagerLimit" | "expenseLimit" | "allocationOrder" | "goLiveDate" | "dueUpcomingDays"
+      | "loanManagerLimit"
+      | "expenseLimit"
+      | "allocationOrder"
+      | "goLiveDate"
+      | "dueUpcomingDays"
+      | "tempPasswordHours"
     >,
     label: string,
   ) => <CheckboxRow id={`rules-${name}`} label={label} {...form.register(name)} />;
@@ -127,6 +132,26 @@ function RulesForm({ rules, currency }: { rules: RulesValues; currency: string }
               validation(errors.dueUpcomingDays?.message),
             )}
             {...form.register("dueUpcomingDays")}
+          />
+        </Field>
+
+        <Field
+          id="rules-tempPasswordHours"
+          label={t("rules.tempPasswordHours")}
+          help={t("rules.tempPasswordHoursHelp")}
+          error={validation(errors.tempPasswordHours?.message)}
+        >
+          <input
+            id="rules-tempPasswordHours"
+            inputMode="numeric"
+            autoComplete="off"
+            className={`${inputClass} tabular max-w-24`}
+            {...describedBy(
+              "rules-tempPasswordHours",
+              t("rules.tempPasswordHoursHelp"),
+              validation(errors.tempPasswordHours?.message),
+            )}
+            {...form.register("tempPasswordHours")}
           />
         </Field>
 

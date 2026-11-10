@@ -498,6 +498,7 @@ async function DashboardContent({ searchParams }: { searchParams: PageProps<"/da
             {t("forbidden")}
           </Callout>
         ) : null}
+        {params.notice === "password-changed" ? <Callout>{t("passwordChanged")}</Callout> : null}
         <div>
           <h2 id="greeting" className="text-xl font-bold text-ink lg:text-2xl">
             {t("greeting", { name: firstName })}

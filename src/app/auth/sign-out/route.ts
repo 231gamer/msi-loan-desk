@@ -7,7 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
  * POST: the "Sign out" button. GET: used only by the route guard to sign out a deactivated user
  * (notice=inactive); signing someone out is the only effect, so a forged GET can do no harm.
  */
-const NOTICES = new Set(["signed-out", "inactive", "expired"]);
+const NOTICES = new Set(["signed-out", "inactive", "expired", "temp-expired", "sign-in-again"]);
 
 async function signOut(request: NextRequest, notice: string) {
   const supabase = await createSupabaseServerClient();

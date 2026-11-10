@@ -1588,17 +1588,20 @@ export type Database = {
         Row: {
           fingerprint: string;
           recorded_at: string;
+          required_at: string | null;
           user_id: string;
         };
         ComputedFields: never;
         Insert: {
           fingerprint: string;
           recorded_at?: string;
+          required_at?: string | null;
           user_id: string;
         };
         Update: {
           fingerprint?: string;
           recorded_at?: string;
+          required_at?: string | null;
           user_id?: string;
         };
         Relationships: [
@@ -2463,6 +2466,7 @@ export type Database = {
           must_change_password: boolean;
           password_changed_at: string;
           role: Database["public"]["Enums"]["app_role"];
+          sign_in_again: boolean;
           temp_password_expired: boolean;
           temp_password_expires_at: string;
         }[];
@@ -2549,7 +2553,7 @@ export type Database = {
         };
         Returns: Json;
       };
-      record_password_fingerprint: { Args: { p_user_id: string }; Returns: undefined };
+      record_password_fingerprint: { Args: { p_required: boolean; p_user_id: string }; Returns: undefined };
       recovery_account: {
         Args: {
           p_loan: Omit<
@@ -2616,6 +2620,7 @@ export type Database = {
       save_payee: { Args: { p_id: string; p_payee: Json }; Returns: string };
       scheduled_daily_accruals: { Args: Record<PropertyKey, never>; Returns: Json };
       sequence_scope: { Args: { p_branch: string; p_kind: string }; Returns: string };
+      session_predates_requirement: { Args: { p_user_id: string }; Returns: boolean };
       set_sequence_start: {
         Args: { p_branch_id: string; p_kind: string; p_last_value: number };
         Returns: undefined;

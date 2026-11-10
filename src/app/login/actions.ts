@@ -8,7 +8,8 @@ import { safeNextPath } from "@/lib/permissions";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export type SignInError = "invalidInput" | "invalidCredentials" | "inactive" | "rateLimited" | "unavailable";
+export type SignInError =
+  "invalidInput" | "invalidCredentials" | "inactive" | "tempExpired" | "rateLimited" | "unavailable";
 
 export interface SignInState {
   error?: SignInError;
@@ -74,25 +75,30 @@ export async function signIn(_previous: SignInState, formData: FormData): Promis
   }
   await loginGuard(parsed.data.email, "succeeded");
 
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("active")
-    .eq("id", data.user.id)
-    .maybeSingle();
+  // my_account() works while the account must set a new password (the profile table refuses it then).
+  const { data: account, error: accountError } = await supabase.rpc("my_account").maybeSingle();
 
-  if (profileError !== null) {
+  if (accountError !== null) {
     await supabase.auth.signOut({ scope: "local" });
     logServerError({
-      code: `PROFILE_READ_${profileError.code}`,
+      code: `PROFILE_READ_${accountError.code}`,
       userId: data.user.id,
       where: "login.signIn",
     });
     return { error: "unavailable", email };
   }
 
-  if (profile === null || !profile.active) {
+  if (account === null || !account.active) {
     await supabase.auth.signOut({ scope: "local" });
     return { error: "inactive", email };
+  }
+
+  if (account.must_change_password) {
+    if (account.temp_password_expired) {
+      await supabase.auth.signOut({ scope: "local" });
+      return { error: "tempExpired", email };
+    }
+    redirect("/account/password");
   }
 
   redirect(safeNextPath(parsed.data.next));

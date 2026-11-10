@@ -18,6 +18,7 @@ const ALL: readonly Role[] = ROLES;
  * documented in permissions.ts). If the map changes, this table must change on purpose.
  */
 const EXPECTED: Record<Exclude<RouteKey, "/login" | "/verify/[token]" | "/api/health">, readonly Role[]> = {
+  "/account/password": ALL,
   "/dashboard": ALL,
   "/api/pdf/[kind]/[id]": ALL,
   "/api/reminder/[loanId]": ALL,
