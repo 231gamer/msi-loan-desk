@@ -2,7 +2,16 @@
 
 All notable changes, one section per phase. Format follows Keep a Changelog.
 
-## [M9 Migration, dashboards, hardening] 2026-11-09 (in review, PR #1)
+## [Hosted setup] 2026-11-09
+### Added
+- Live at https://www.methodsolutionslr.com: Vercel project `msi-loan-desk`, Supabase project `msi-loandesk` (production, free plan), admin Corex-admin.
+- Private repository `231gamer/msi-loan-desk`.
+- `scripts/hosted-db.sh`: migrations, push, security advisor and psql against the live database.
+- `.gitattributes`: LF line endings on every checkout.
+### Changed
+- Deploy flow: branch and pull request; merging to `main` deploys; migrations applied right after the merge (OPERATIONS section 3, DEPLOY section 5).
+
+## [M9 Migration, dashboards, hardening] 2026-11-09
 ### Added
 - Client answers: cheque as a payment and payout method (to Bank), head-office contact on documents, gold and valuables as collateral types, standard wording for the loan agreement and demand notice.
 - Receipt: amount in words, purpose line and Received by / Authorized signature lines, as on MSI's paper voucher.
@@ -12,7 +21,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 - M9.4: End-to-end smoke run (SPEC 12.3) in CI; accessibility 100 on the field screen.
 - M9.5: Full checks, screenshots, M9 report.
 
-## [M8 Money-out, day close, reports] 2026-11-09 (in review, PR #1)
+## [M8 Money-out, day close, reports] 2026-11-09
 ### Added
 - M8.1: Payees and expenses with the approval limit, payment now or on credit, settlement (R9, R9b, R9c).
 - M8.2: Expenses and payees screens; expense card in the approvals inbox.
@@ -21,14 +30,14 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 - M8.5: Reports screens with filters, CSV export and print view.
 - M8.6: Demo expenses and drawer openings matching DEMO_DATA; report check; screenshots; M8 report.
 
-## [M7 Statements and documents] 2026-11-09 (in review, PR #1)
+## [M7 Statements and documents] 2026-11-09
 ### Added
 - M7.1: Statements with running balance from the ledger, demand notices with a deadline, collateral receipt and release letter numbering, public document check.
 - M7.2: PDFs: statement of account (loan or customer, optional period), demand notice, collateral receipt with photos, release letter; each with a verification QR code.
 - M7.3: Public `/verify` page; document links on the loan, customer, collateral and recovery pages.
 - M7.4: Statement check over the demo data, screenshots, M7 report.
 
-## [M6 Collateral and recovery] 2026-11-08 (in review, PR #1; push pending)
+## [M6 Collateral and recovery] 2026-11-08
 ### Added
 - M6.1: Collateral register rules: duplicate identifiers flagged, photos and documents, custody log entries, return to the owner once loans have ended; recovery case numbers RC-000001 (T-24).
 - M6.2: Collateral register, item page and registration screens.
@@ -37,7 +46,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 - M6.5: Recovery screens, recovery and write-off actions on the loan page, write-off card in the inbox.
 - M6.6: Demo custody log, releases and recovery case RC-000001 from DEMO_DATA.
 
-## [M5 Accruals and due lists] 2026-11-07 (in review, PR #1; push pending)
+## [M5 Accruals and due lists] 2026-11-07
 ### Added
 - M5.1: Daily job: overdue marking, weekly penalties with the same amounts whether it runs daily or late, recovery eligibility, run log (T-03 to T-08, T-33, T-33b).
 - M5.2: The job runs every night in the database; the loan page shows penalties, the weekly count and the next penalty.
@@ -45,7 +54,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 - M5.4: Loan extension through approval, with the cost shown on the request (T-13).
 - M5.5: Demo penalties and the pending extension from DEMO_DATA; demo payment check (`pnpm test:demo`).
 
-## [M4 Payments] 2026-11-07 (in review, PR #1)
+## [M4 Payments] 2026-11-07
 ### Added
 - M4.1: Office payments with a fixed allocation order (penalty, interest, then amount lent), overpayment refused, references for mobile money and bank, safe retries, date rules; loans close when nothing is owed.
 - M4.2: Field payments by loan officers; field cash waits until the cashier confirms the handover with a counted total.
@@ -57,7 +66,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 ### Fixed
 - M4.4: Contrast of help text and inline links on the payment screens.
 
-## [M3 Loans] 2026-11-05 (in review, PR #1)
+## [M3 Loans] 2026-11-05
 ### Added
 - M3.1: Loan products as configuration with an admin tab in Settings; the standard 1-month product is seeded.
 - M3.2: Interest, rounding and due-date rules in the database (T-01, T-02, T-09); loans with the product's rules copied at submission; balances from the ledger; loan preview.
@@ -69,7 +78,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 ### Fixed
 - M3.6: A cashier's payout was refused at commit because the ledger checks could not see the new lines.
 
-## [M2 Customers] 2026-11-04 (in review, PR #1)
+## [M2 Customers] 2026-11-04
 ### Added
 - M2.1: Customer register (individual and business) with KYC fields, a duplicate check on phone, second phone and ID number (manager override with a reason), document attachments that are never deleted, and a private documents store.
 - M2.2: Customer list with search (name, phone, ID, code) and filters; new-customer form with photo, ID scan and proof of address; large photos are made smaller before upload; the server checks each file's real type.
@@ -79,7 +88,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 ### Fixed
 - M2.5: A numbering test no longer depends on an empty database.
 
-## [M1 Ledger core] 2026-11-04 (in review, PR #1)
+## [M1 Ledger core] 2026-11-04
 ### Added
 - M1.1: Chart of accounts (SPEC 6.1) with a cash account per branch created automatically; `journals` and `journal_lines` with the SPEC 6.3 invariants (balanced at commit, one-sided lines, immutable), lines only in the creating transaction, and journals joined to the hash chain (`verify_journal_chain`). Tests T-20, T-21.
 - M1.2: `post_journal` (the only journal writer: balance, whole cents, active accounts, one currency, loan receivable tagging, period locks, audit), `next_number` with a global loan counter (B-02) and 6-digit expense numbers (B-03), `set_sequence_start` for continuing paper numbering before go-live, `period_locks`. Test T-22.
@@ -91,7 +100,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 - M1.3: Wide tables on phones are now keyboard-scrollable (WCAG 2.1.1).
 - M1.1: New functions no longer get EXECUTE for PUBLIC by default.
 
-## [M0 Foundation] 2026-11-04 (in review, PR #1)
+## [M0 Foundation] 2026-11-04
 ### Added
 - M0.6: `/audit` read-only audit log for manager, CEO and admin with filters and before/after changes; `pnpm seed:demo [--as-of]` creating the DEMO_DATA staff accounts through audited RPCs.
 - M0.1: Next.js 16 (App Router, TypeScript strict) project with pnpm, MSI design tokens (Tailwind 4, shadcn/ui variables), Inter with tabular figures, next-intl with `messages/en.json`, designed not-found and error pages.

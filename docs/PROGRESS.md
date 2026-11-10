@@ -2,11 +2,29 @@
 
 | Item | Value |
 | --- | --- |
-| Current phase | M9 complete; next: hosted setup and the client pilot gate (SPEC 13) |
-| Current block | M9.5 done (report `docs/reports/PHASE-M9.md`) |
-| Last approved block | M7 phase start (Foday 2026-11-08) |
-| State | Stopped for approval. Push works; the GitHub API still answers 404 (PR and CI not visible) |
-| Next step | Hosted setup (needs Foday's Supabase and Vercel accounts), then the pilot gate |
+| Current phase | M9 complete; hosted setup done (2026-11-09); next: the client pilot gate (SPEC 13) |
+| Current block | Hosted setup (see "Hosted setup" below and `docs/OPERATIONS.md` section 1) |
+| Last approved block | Hosted setup (Foday 2026-11-09) |
+| State | **Live** at https://www.methodsolutionslr.com (Vercel + Supabase `msi-loandesk`, marked production, free plan). Admin Corex-admin signs in. No business data yet |
+| Repository | `231gamer/msi-loan-desk` (private), default branch `main`. The old repository `ultimategamer231/msi`, branch `claude/new-session-6ictcc` and its PR #1 are gone; the history before the import is in `loandesk-full.bundle` |
+| Next step | Foday: Site URL `https://` fix, Supabase Pro (backups), company/branch/user set-up in Settings, then going live (`docs/OPERATIONS.md` section 4) and the pilot gate |
+
+## Hosted setup (2026-11-09)
+
+| Step | Done |
+| --- | --- |
+| Local run on Foday's Windows PC | Node 22.23.4 (user folder, PATH), pnpm 10.28 via corepack, local Supabase in Docker, demo seed; all checks green (typecheck, lint, 337 unit, 602 database, build) |
+| GitHub | `git init` from the source package, one import commit `eee485b` on `main`, pushed to `231gamer/msi-loan-desk` (made private right after the push) |
+| Supabase | Project `msi-loandesk` (ref `nvtakgkiuasuywxgjaay`, eu-west-1, free plan): 49 migrations pushed (no seed), `seed_core.sql` loaded, `app_environment` = `production`, RLS on all 32 tables, `daily-accruals` cron 01:00, buckets `branding` (public) and `documents` (private), security advisor clean. Sign-ups off, minimum password 10. Admin profile Corex-admin (role admin) |
+| Vercel | Project `msi-loan-desk`, deploys `main` to production; env vars `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Domain | `methodsolutionslr.com` → 308 to `https://www.methodsolutionslr.com` (Let's Encrypt via Vercel); `/api/health` ok, security headers present; `msi-loan-desk.vercel.app` also serves the app |
+| Tooling | `scripts/hosted-db.sh` (migrations, push, advisors, psql against the live database from the ignored env file); `.gitattributes` keeps LF on Windows |
+
+Open items (Foday):
+1. Supabase → Authentication → URL Configuration: Site URL is `http://www.methodsolutionslr.com`; change to `https://…` and add redirect URLs `https://methodsolutionslr.com/**` and `https://msi-loan-desk.vercel.app/**`.
+2. Upgrade Supabase to Pro before real loans and payments (daily backups, no pausing). Until then, weekly `scripts/backup.sh` copies (offered, not set up yet).
+3. Vercel → Settings → Environment Variables: check whether the three keys are also set for **Preview**. If yes, every branch preview writes to the live database; remove them from Preview (or point Preview at a separate staging project).
+4. Settings in LoanDesk: company details and logo, branch phone numbers, staff accounts, product and limits; then going live.
 
 ## M9 plan (Migration, dashboards, hardening: FR-27, FR-29; T-30, T-31, SPEC 12.3)
 
@@ -107,15 +125,16 @@ Open questions are answered later (Foday 2026-11-07): B-08 (a), B-09 (a), B-10 (
 
 Loans, collateral and total owed on the profile arrive with M3 and M6; the panels are not shown before their data exists.
 
-## Session start checklist (cloud container)
+## Session start checklist (cloud container or Foday's Windows PC, see item 8)
 
 1. Read `CLAUDE.md`, this file (state and next step), the latest report in `docs/reports/`, and the SPEC sections for the current block. Decisions so far are in `docs/DECISIONS.md`; open questions in `docs/QUESTIONS.md` and `docs/reports/OPEN-QUESTIONS-2026-11-05.md`.
-2. Start Docker if it is not running: `dockerd > /tmp/dockerd.log 2>&1 &`, then wait until `docker info` works. If Supabase containers come back unhealthy after a restart: `pnpm supabase stop --no-backup` then `pnpm db:start`.
+2. Start Docker if it is not running (container: `dockerd > /tmp/dockerd.log 2>&1 &`; Windows: open Docker Desktop), then wait until `docker info` works. If Supabase containers come back unhealthy after a restart: `pnpm supabase stop --no-backup` then `pnpm db:start`.
 3. `pnpm install`, `pnpm db:start` (applies migrations and seeds), `pnpm env:local` (writes `.env.local`), `pnpm types` after any migration change.
 4. Checks before every commit (CI runs the same and fails on warnings): `pnpm format`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:db`, `pnpm supabase db lint --level warning`, `pnpm supabase db advisors --type all --level warn`. For e2e: `pnpm build`, free port 3000 (`fuser -k 3000/tcp`), then `CI=1 pnpm test:e2e`.
 5. Apply a new migration locally with `pnpm supabase migration up`. If local e2e runs start failing on lists (old test data piling up, for example the approvals inbox), reset with `pnpm supabase db reset`; CI always starts fresh.
 6. Demo data: `pnpm seed:demo --as-of 2026-02-12` on a fresh database (about 3.5 minutes: the nightly job runs for each past day). It prints the demo passwords once; never commit them. `DEMO_GRACE_PASSWORD=... pnpm test:demo` then checks Mariama's demo payment (it changes the demo data, so reseed afterwards).
-7. Work is safe only once pushed; the container is temporary. Commit per block, push, keep PR #1 up to date, never push to `main`.
+7. Work is safe only once pushed. Commit per block on a branch, push, and keep that branch's pull request up to date. Never push to `main`: **Vercel deploys `main` straight to the live site**, so merging a pull request (Foday, after approval) is the deploy. A migration in that pull request must be applied to the live database right after the merge with `scripts/hosted-db.sh push` (see `docs/OPERATIONS.md` section 3).
+8. On Foday's Windows PC (not a container): Node 22 is in `%LOCALAPPDATA%\Programs\node-v22.23.4-win-x64` (on the user PATH; a shell started before that may need it prepended), pnpm via corepack, Docker Desktop for local Supabase, Git Bash for `.sh` scripts. The `gh` CLI is not installed: Foday opens and merges pull requests on github.com. Instead of `fuser -k 3000/tcp`, find the process with `Get-NetTCPConnection -LocalPort 3000` in PowerShell. Secrets for the live project are in the ignored `.env.staging` (named before the project became production; `.env.hosted` is also read by `scripts/hosted-db.sh`); never print or commit them.
 
 ## Log
 
@@ -192,3 +211,7 @@ Loans, collateral and total owed on the profile arrive with M3 and M6; the panel
 | 2026-11-09 | Answers | Cheque number on payouts, kept in the journal memo; 602 database tests |
 | 2026-11-09 | Answers | Branch addresses (BR1 Jallah Town, BR2 Mamba District #2, BR3 Ganta) |
 | 2026-11-09 | Answers | Branch names (Jallah Town, Margibi, Nimba); USD+LRD noted; A4 printer; docs/DEPLOY.md and the download package |
+| 2026-11-09 | Hosted | Local run on Foday's Windows PC; all checks green |
+| 2026-11-09 | Hosted | New private repository `231gamer/msi-loan-desk` (import commit on `main`) |
+| 2026-11-09 | Hosted | Supabase `msi-loandesk`: migrations, base data, admin Corex-admin; marked production (free plan) |
+| 2026-11-09 | Hosted | Vercel deploy and domain https://www.methodsolutionslr.com; health ok; `scripts/hosted-db.sh`; hand-over docs |
