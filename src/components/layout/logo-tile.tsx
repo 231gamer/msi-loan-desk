@@ -1,10 +1,11 @@
-import Image from "next/image";
-
 import { cn } from "@/lib/utils";
+
+import { LogoImage } from "./logo-image";
 
 /*
  * The company logo always sits on a white tile, never directly on purple (SPEC 11 Branding).
- * Without a logo URL the tile shows the company short name instead.
+ * The uploaded logo is shown first, then the logo shipped with the app; the company short name
+ * appears only if neither loads.
  */
 export function LogoTile({
   logoUrl,
@@ -22,18 +23,7 @@ export function LogoTile({
   const box = size === "sm" ? "size-10 rounded-control p-[3px]" : "h-10 w-11";
   return (
     <span className={cn("inline-flex shrink-0 items-center justify-center bg-surface", box, className)}>
-      {logoUrl !== null ? (
-        <Image
-          src={logoUrl}
-          alt={alt}
-          width={44}
-          height={40}
-          unoptimized
-          className="size-full object-contain"
-        />
-      ) : (
-        <span className="text-xs font-extrabold text-primary">{shortName}</span>
-      )}
+      <LogoImage logoUrl={logoUrl} alt={alt} shortName={shortName} />
     </span>
   );
 }
