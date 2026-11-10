@@ -1584,6 +1584,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      password_fingerprints: {
+        Row: {
+          fingerprint: string;
+          recorded_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          fingerprint: string;
+          recorded_at?: string;
+          user_id: string;
+        };
+        Update: {
+          fingerprint?: string;
+          recorded_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "password_fingerprints_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       payees: {
         Row: {
           active: boolean;
@@ -1834,8 +1861,11 @@ export type Database = {
           created_by: string | null;
           full_name: string;
           id: string;
+          must_change_password: boolean;
+          password_changed_at: string | null;
           phone: string | null;
           role: Database["public"]["Enums"]["app_role"];
+          temp_password_expires_at: string | null;
           updated_at: string;
           updated_by: string | null;
         };
@@ -1847,8 +1877,11 @@ export type Database = {
           created_by?: string | null;
           full_name: string;
           id: string;
+          must_change_password?: boolean;
+          password_changed_at?: string | null;
           phone?: string | null;
           role: Database["public"]["Enums"]["app_role"];
+          temp_password_expires_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -1859,8 +1892,11 @@ export type Database = {
           created_by?: string | null;
           full_name?: string;
           id?: string;
+          must_change_password?: boolean;
+          password_changed_at?: string | null;
           phone?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
+          temp_password_expires_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -2122,6 +2158,8 @@ export type Database = {
       add_customer_documents: { Args: { p_customer_id: string; p_files: Json }; Returns: undefined };
       add_months_clamped: { Args: { p_date: string; p_months: number }; Returns: string };
       admin_record_password_reset: { Args: { p_user_id: string }; Returns: undefined };
+      admin_require_password_change: { Args: { p_reason: string; p_user_id: string }; Returns: string };
+      admin_require_password_change_all: { Args: { p_reason: string }; Returns: number };
       admin_set_profile: {
         Args: {
           p_active: boolean;
@@ -2230,6 +2268,7 @@ export type Database = {
       claim_upload: { Args: { p_images_only?: boolean; p_path: string }; Returns: Json };
       clean_guarantors: { Args: { p_guarantors: Json }; Returns: Json };
       clock_override_allowed: { Args: Record<PropertyKey, never>; Returns: boolean };
+      complete_password_change: { Args: Record<PropertyKey, never>; Returns: undefined };
       confirm_remittance: { Args: { p_counted_total_cents: number; p_payment_ids: string[] }; Returns: Json };
       create_customer: { Args: { p_customer: Json }; Returns: string };
       create_expense: { Args: { p_expense: Json }; Returns: Json };
@@ -2411,8 +2450,26 @@ export type Database = {
       login_email_hash: { Args: { p_email: string }; Returns: string };
       login_guard: { Args: { p_email: string; p_event: string }; Returns: string };
       mask_name: { Args: { p_name: string }; Returns: string };
+      my_account: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          active: boolean;
+          branch_code: string;
+          branch_id: string;
+          branch_name: string;
+          email: string;
+          full_name: string;
+          id: string;
+          must_change_password: boolean;
+          password_changed_at: string;
+          role: Database["public"]["Enums"]["app_role"];
+          temp_password_expired: boolean;
+          temp_password_expires_at: string;
+        }[];
+      };
       next_number: { Args: { p_branch?: string; p_kind: string }; Returns: string };
       open_recovery_case: { Args: { p_loan_id: string; p_note: string }; Returns: string };
+      password_fingerprint: { Args: { p_user_id: string }; Returns: string };
       pay_surplus: {
         Args: { p_amount_cents: number; p_loan_id: string; p_method?: string };
         Returns: string;
@@ -2492,6 +2549,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      record_password_fingerprint: { Args: { p_user_id: string }; Returns: undefined };
       recovery_account: {
         Args: {
           p_loan: Omit<
@@ -2547,6 +2605,7 @@ export type Database = {
       request_write_off: { Args: { p_loan_id: string; p_reason: string }; Returns: string };
       require_entry_date: { Args: { p_date: string }; Returns: string };
       require_posting_date: { Args: { p_date: string }; Returns: undefined };
+      require_reason: { Args: { p_reason: string }; Returns: string };
       require_report_role: { Args: Record<PropertyKey, never>; Returns: undefined };
       require_role: {
         Args: { p_roles: Database["public"]["Enums"]["app_role"][] };
@@ -2593,6 +2652,7 @@ export type Database = {
         };
         Returns: Json;
       };
+      temp_password_hours: { Args: Record<PropertyKey, never>; Returns: number };
       trial_balance: {
         Args: { p_as_of: string };
         Returns: {
