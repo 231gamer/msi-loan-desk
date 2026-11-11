@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Menu } from "lucide-react";
+import { KeyRound, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -31,7 +31,14 @@ export function BottomNav({
   account,
 }: {
   items: NavLinkItem[];
-  labels: { nav: string; more: string; moreTitle: string; close: string; signOut: string };
+  labels: {
+    nav: string;
+    more: string;
+    moreTitle: string;
+    close: string;
+    signOut: string;
+    changePassword: string;
+  };
   account: string;
 }) {
   const pathname = usePathname();
@@ -99,7 +106,17 @@ export function BottomNav({
               );
             })}
           </ul>
-          <form action="/auth/sign-out" method="post" className="mx-3 border-t border-line pt-3">
+          <div className="mx-3 border-t border-line pt-3">
+            <Link
+              href="/account/password"
+              onClick={() => setOpen(false)}
+              className="flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-sm font-semibold text-ink hover:bg-page"
+            >
+              <KeyRound aria-hidden="true" className="size-5" />
+              {labels.changePassword}
+            </Link>
+          </div>
+          <form action="/auth/sign-out" method="post" className="mx-3">
             <button
               type="submit"
               className="flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-sm font-semibold text-ink hover:bg-page"

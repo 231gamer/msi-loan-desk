@@ -14,9 +14,17 @@ const RULES = {
   allocationOrder: ["penalty", "interest", "principal"],
   goLiveDate: "",
   dueUpcomingDays: "7",
+  tempPasswordHours: "72",
 } as const;
 
 describe("rulesSchema", () => {
+  it("accepts temporary password hours from 1 to 720 only", () => {
+    for (const hours of ["1", "72", "720"])
+      expect(rulesSchema.safeParse({ ...RULES, tempPasswordHours: hours }).success).toBe(true);
+    for (const hours of ["0", "721", "", "2.5", "abc"])
+      expect(rulesSchema.safeParse({ ...RULES, tempPasswordHours: hours }).success).toBe(false);
+  });
+
   it("accepts the seeded defaults", () => {
     expect(rulesSchema.safeParse(RULES).success).toBe(true);
   });

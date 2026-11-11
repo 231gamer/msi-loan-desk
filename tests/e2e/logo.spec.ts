@@ -24,6 +24,20 @@ function shellLogo(page: Page, isMobile: boolean): Locator {
   return area.getByRole("img", { name: LOGO });
 }
 
+test.describe("browser tab (title and icons)", () => {
+  test("the sign-in page is titled MSI-Dashboard and the icons are served", async ({ page, request }) => {
+    await page.goto("/login");
+    await expect(page).toHaveTitle("MSI-Dashboard");
+    await expect(page.locator('link[rel="icon"][type="image/png"]')).toHaveAttribute("href", /\/icon\.png/);
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute("href", /\/apple-icon\.png/);
+    for (const url of ["/icon.png", "/apple-icon.png", "/favicon.ico"]) {
+      const response = await request.get(url);
+      expect(response.status(), url).toBe(200);
+      expect(response.headers()["content-type"], url).toMatch(/^image\//);
+    }
+  });
+});
+
 test.describe("logo (SPEC 11 Branding)", () => {
   test("uploaded logo shows on sign-in and in the shell", async ({ page, isMobile }) => {
     await page.goto("/login");

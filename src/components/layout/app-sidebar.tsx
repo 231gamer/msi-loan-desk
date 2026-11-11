@@ -1,4 +1,5 @@
-import { LogOut } from "lucide-react";
+import { KeyRound, LogOut } from "lucide-react";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 
 import { getCurrentStaff } from "@/lib/auth/staff";
@@ -60,6 +61,14 @@ export async function AppSidebar() {
           <p className="truncate text-[13px] font-semibold">{staff.fullName}</p>
           <p className="text-xs text-on-primary-muted">{tRoles(staff.role)}</p>
         </div>
+        <Link
+          href="/account/password"
+          title={t("changePassword")}
+          className="inline-flex size-10 items-center justify-center rounded-control text-on-primary-muted transition-colors duration-150 ease-out hover:bg-white/10 hover:text-white"
+        >
+          <KeyRound className="size-4" aria-hidden="true" />
+          <span className="sr-only">{t("changePassword")}</span>
+        </Link>
         <form action="/auth/sign-out" method="post">
           <button
             type="submit"

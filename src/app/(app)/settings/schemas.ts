@@ -67,6 +67,11 @@ export const rulesSchema = z.object({
     .trim()
     .regex(/^\d{1,2}$/, { message: "days" })
     .refine((value) => Number(value) >= 1 && Number(value) <= 60, { message: "days" }),
+  tempPasswordHours: z
+    .string()
+    .trim()
+    .regex(/^\d{1,3}$/, { message: "hours" })
+    .refine((value) => Number(value) >= 1 && Number(value) <= 720, { message: "hours" }),
 });
 export type RulesValues = z.infer<typeof rulesSchema>;
 
@@ -96,6 +101,12 @@ export const newUserSchema = z
   .object({ ...userFields, email: z.email({ message: "email" }).max(200, { message: "tooLong" }) })
   .refine(branchRule, { message: "branchRequired", path: ["branchId"] });
 export type NewUserValues = z.infer<typeof newUserSchema>;
+
+/* "Require a new password" (one user or everyone): a reason of 3 to 300 characters, audited. */
+export const requireChangeSchema = z.object({
+  userId: z.uuid(),
+  reason: z.string().trim().min(3, { message: "reason" }).max(300, { message: "tooLong" }),
+});
 
 export const userSchema = z
   .object({ ...userFields, id: z.uuid(), active: z.boolean() })

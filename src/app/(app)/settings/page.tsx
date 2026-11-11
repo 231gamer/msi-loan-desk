@@ -20,7 +20,7 @@ import { CompanyPanel } from "./company-panel";
 import { ProductsPanel } from "./products-panel";
 import { RulesPanel } from "./rules-panel";
 import type { AllocationComponent } from "./schemas";
-import { UsersPanel } from "./users-panel";
+import { UsersPanel, type PasswordStatus } from "./users-panel";
 
 /* /settings (admin): company header, branches, rule settings and users (SPEC 9, FR-01, FR-02). */
 const TABS = ["company", "branches", "products", "rules", "users"] as const;
@@ -202,6 +202,7 @@ async function RulesTab() {
         allocationOrder: order.length === 3 ? order : ["penalty", "interest", "principal"],
         goLiveDate: typeof goLive === "string" ? goLive : "",
         dueUpcomingDays: String(settings.get("due.upcoming_days") ?? 7),
+        tempPasswordHours: String(settings.get("auth.temp_password_hours") ?? 72),
       }}
       clock={{
         allowed:
@@ -223,7 +224,9 @@ async function UsersTab({ staff }: { staff: Staff }) {
   const [{ data: profiles, error }, { data: branches, error: branchError }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, full_name, phone, role, active, branch_id, branch:branches!profiles_branch_id_fkey(name)")
+      .select(
+        "id, full_name, phone, role, active, branch_id, must_change_password, temp_password_expires_at, branch:branches!profiles_branch_id_fkey(name)",
+      )
       .order("full_name"),
     supabase.from("branches").select("id, code, name, active").order("code"),
   ]);
@@ -257,7 +260,15 @@ async function UsersTab({ staff }: { staff: Staff }) {
         branchId: profile.branch_id ?? "",
         branchName: profile.branch?.name ?? "",
         active: profile.active,
+        password: passwordStatus(profile.must_change_password, profile.temp_password_expires_at),
       }))}
     />
   );
+}
+
+/** The password state shown on each user (server time decides whether a temporary one has expired). */
+function passwordStatus(mustChange: boolean, expiresAt: string | null): PasswordStatus {
+  if (!mustChange) return { kind: "set" };
+  if (expiresAt !== null && new Date(expiresAt).getTime() <= Date.now()) return { kind: "expired" };
+  return { kind: "mustSet", expiresAt: expiresAt === null ? "" : formatDateTime(expiresAt) };
 }
