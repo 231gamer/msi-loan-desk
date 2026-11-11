@@ -4,7 +4,7 @@
 | --- | --- |
 | Current phase | M9 complete; hosted setup done (2026-11-09); next: the client pilot gate (SPEC 13) |
 | Current block | Hosted setup (see "Hosted setup" below and `docs/OPERATIONS.md` section 1) |
-| Last approved block | Hosted setup (Foday 2026-11-09) |
+| Last approved block | Temporary passwords and branding, merged and live (Foday 2026-11-11) |
 | State | **Live** at https://www.methodsolutionslr.com (Vercel + Supabase `msi-loandesk`, marked production, free plan). Admin Corex-admin signs in. No business data yet |
 | Repository | `231gamer/msi-loan-desk` (private), default branch `main`. The old repository `ultimategamer231/msi`, branch `claude/new-session-6ictcc` and its PR #1 are gone; the history before the import is in `loandesk-full.bundle` |
 | Next step | Foday: Site URL `https://` fix, Supabase Pro (backups), company/branch/user set-up in Settings, then going live (`docs/OPERATIONS.md` section 4) and the pilot gate |
@@ -216,3 +216,4 @@ Loans, collateral and total owed on the profile arrive with M3 and M6; the panel
 | 2026-11-09 | Hosted | Supabase `msi-loandesk`: migrations, base data, admin Corex-admin; marked production (free plan) |
 | 2026-11-09 | Hosted | Vercel deploy and domain https://www.methodsolutionslr.com; health ok; `scripts/hosted-db.sh`; hand-over docs |
 | 2026-11-11 | Passwords and branding | Tab title MSI-Dashboard and MSI icons; temporary passwords (expire after `auth.temp_password_hours`, default 72) with forced change on first sign-in, `/account/password`, admin "require password change" for one or all users; 638 database tests, 356 unit tests |
+| 2026-11-11 | Hosted | Migration `20261115000100_temporary_passwords` pushed to `msi-loandesk` (advisor clean, no account flagged, RLS on every table); `feature/temporary-passwords-and-branding` merged to `main` (79141ba) and deployed; health ok, tab title MSI-Dashboard |
