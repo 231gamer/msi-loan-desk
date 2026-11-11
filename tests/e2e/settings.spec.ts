@@ -132,7 +132,8 @@ test.describe("settings (FR-02; M0 acceptance: audit rows on settings change)", 
     const newUserPage = await other.newPage();
     await newUserPage.goto("/login");
     await signIn(newUserPage, email, password);
-    await expect(newUserPage).toHaveURL(/\/dashboard$/);
+    // The password is temporary: the first sign-in opens the set-password page.
+    await expect(newUserPage).toHaveURL(/\/account\/password$/);
     await other.close();
 
     await page.getByRole("button", { name: "I have noted it" }).click();

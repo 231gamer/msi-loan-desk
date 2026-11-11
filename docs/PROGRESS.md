@@ -215,3 +215,4 @@ Loans, collateral and total owed on the profile arrive with M3 and M6; the panel
 | 2026-11-09 | Hosted | New private repository `231gamer/msi-loan-desk` (import commit on `main`) |
 | 2026-11-09 | Hosted | Supabase `msi-loandesk`: migrations, base data, admin Corex-admin; marked production (free plan) |
 | 2026-11-09 | Hosted | Vercel deploy and domain https://www.methodsolutionslr.com; health ok; `scripts/hosted-db.sh`; hand-over docs |
+| 2026-11-11 | Passwords and branding | Tab title MSI-Dashboard and MSI icons; temporary passwords (expire after `auth.temp_password_hours`, default 72) with forced change on first sign-in, `/account/password`, admin "require password change" for one or all users; 638 database tests, 356 unit tests |
