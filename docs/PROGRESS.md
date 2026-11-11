@@ -7,7 +7,7 @@
 | Last approved block | Temporary passwords and branding, merged and live (Foday 2026-11-11) |
 | State | **Live** at https://www.methodsolutionslr.com (Vercel + Supabase `msi-loandesk`, marked production, free plan). Admin Corex-admin signs in. No business data yet |
 | Repository | `231gamer/msi-loan-desk` (private), default branch `main`. The old repository `ultimategamer231/msi`, branch `claude/new-session-6ictcc` and its PR #1 are gone; the history before the import is in `loandesk-full.bundle` |
-| Next step | Foday: Site URL `https://` fix, Supabase Pro (backups), company/branch/user set-up in Settings, then going live (`docs/OPERATIONS.md` section 4) and the pilot gate |
+| Next step | Foday: Vercel Preview keys check, Supabase Pro (backups), company/branch/user set-up in Settings, then going live (`docs/OPERATIONS.md` section 4) and the pilot gate |
 
 ## Hosted setup (2026-11-09)
 
@@ -21,7 +21,7 @@
 | Tooling | `scripts/hosted-db.sh` (migrations, push, advisors, psql against the live database from the ignored env file); `.gitattributes` keeps LF on Windows |
 
 Open items (Foday):
-1. Supabase → Authentication → URL Configuration: Site URL is `http://www.methodsolutionslr.com`; change to `https://…` and add redirect URLs `https://methodsolutionslr.com/**` and `https://msi-loan-desk.vercel.app/**`.
+1. **Done 2026-11-11 (Foday).** Supabase → Authentication → URL Configuration: Site URL is `http://www.methodsolutionslr.com`; change to `https://…` and add redirect URLs `https://methodsolutionslr.com/**` and `https://msi-loan-desk.vercel.app/**`.
 2. Upgrade Supabase to Pro before real loans and payments (daily backups, no pausing). Until then, weekly `scripts/backup.sh` copies (offered, not set up yet).
 3. Vercel → Settings → Environment Variables: check whether the three keys are also set for **Preview**. If yes, every branch preview writes to the live database; remove them from Preview (or point Preview at a separate staging project).
 4. Settings in LoanDesk: company details and logo, branch phone numbers, staff accounts, product and limits; then going live.
@@ -216,4 +216,4 @@ Loans, collateral and total owed on the profile arrive with M3 and M6; the panel
 | 2026-11-09 | Hosted | Supabase `msi-loandesk`: migrations, base data, admin Corex-admin; marked production (free plan) |
 | 2026-11-09 | Hosted | Vercel deploy and domain https://www.methodsolutionslr.com; health ok; `scripts/hosted-db.sh`; hand-over docs |
 | 2026-11-11 | Passwords and branding | Tab title MSI-Dashboard and MSI icons; temporary passwords (expire after `auth.temp_password_hours`, default 72) with forced change on first sign-in, `/account/password`, admin "require password change" for one or all users; 638 database tests, 356 unit tests |
-| 2026-11-11 | Hosted | Migration `20261115000100_temporary_passwords` pushed to `msi-loandesk` (advisor clean, no account flagged, RLS on every table); `feature/temporary-passwords-and-branding` merged to `main` (79141ba) and deployed; health ok, tab title MSI-Dashboard |
+| 2026-11-11 | Hosted | Migration `20261115000100_temporary_passwords` pushed to `msi-loandesk` (advisor clean, no account flagged, RLS on every table); `feature/temporary-passwords-and-branding` merged to `main` (79141ba) and deployed; health ok, tab title MSI-Dashboard; Corex-admin signs in to the dashboard (Foday); Supabase Site URL and redirect URLs set (Foday) |
