@@ -281,7 +281,18 @@ export async function statementPdf(request: NextRequest, staff: Staff, id: strin
         rows: schedule.map((line) => [
           String(line.installment_no),
           formatDate(String(line.due_date)),
-          t(`installmentStatus.${installmentStatus(line.status)}`),
+          (() => {
+            const status = installmentStatus(line.status);
+            const tone =
+              status === "paid"
+                ? "paid"
+                : status === "behind"
+                  ? "behind"
+                  : status === "not_due"
+                    ? "neutral"
+                    : "due";
+            return { text: t(`installmentStatus.${status}`), tone } as const;
+          })(),
           formatMoney(Number(line.amount_cents)),
           formatMoney(Number(line.paid_cents)),
           formatMoney(Number(line.owed_cents)),
