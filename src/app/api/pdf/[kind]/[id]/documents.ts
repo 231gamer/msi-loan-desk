@@ -269,21 +269,22 @@ export async function statementPdf(request: NextRequest, staff: Staff, id: strin
       blocks.push({
         type: "table",
         heading: t("scheduleHeading", { loan: statement.loan_no }),
+        // Text columns first, amounts last: a left-aligned word never sits against a right-aligned number.
         columns: [
-          { label: t("scheduleColumns.no"), width: "10%" },
-          { label: t("scheduleColumns.due"), width: "20%" },
-          { label: t("scheduleColumns.amount"), width: "17%", align: "right" },
-          { label: t("scheduleColumns.paid"), width: "17%", align: "right" },
-          { label: t("scheduleColumns.owed"), width: "17%", align: "right" },
+          { label: t("scheduleColumns.no"), width: "8%" },
+          { label: t("scheduleColumns.due"), width: "19%" },
           { label: t("scheduleColumns.status"), width: "19%" },
+          { label: t("scheduleColumns.amount"), width: "18%", align: "right" },
+          { label: t("scheduleColumns.paid"), width: "18%", align: "right" },
+          { label: t("scheduleColumns.owed"), width: "18%", align: "right" },
         ],
         rows: schedule.map((line) => [
           String(line.installment_no),
           formatDate(String(line.due_date)),
+          t(`installmentStatus.${installmentStatus(line.status)}`),
           formatMoney(Number(line.amount_cents)),
           formatMoney(Number(line.paid_cents)),
           formatMoney(Number(line.owed_cents)),
-          t(`installmentStatus.${installmentStatus(line.status)}`),
         ]),
       });
     }

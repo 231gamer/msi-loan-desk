@@ -82,7 +82,16 @@ export interface AgreementData {
 const colors = { primary: "#32207E", ink: "#0F172A", muted: "#475569", line: "#CBD5E1", tint: "#F1F5F9" };
 
 const styles = StyleSheet.create({
-  page: { padding: 36, fontSize: 9.5, color: colors.ink, fontFamily: "Helvetica", lineHeight: 1.4 },
+  // The bottom padding keeps room for the fixed footer (verify link and QR code, about 64pt high) on
+  // every page, so long terms flow to the next page instead of running under it.
+  page: {
+    padding: 36,
+    paddingBottom: 104,
+    fontSize: 9.5,
+    color: colors.ink,
+    fontFamily: "Helvetica",
+    lineHeight: 1.4,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

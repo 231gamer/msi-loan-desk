@@ -119,6 +119,9 @@ test.describe("installment loans (SPEC addendum)", () => {
       /Next installment: \$600\.00 due \d{2} [A-Z][a-z]{2} \d{4} \(installment 1 of 4\)/,
     );
     await expect(page.getByRole("button", { name: /extension/i })).toHaveCount(0);
+    await expect(page.getByRole("region", { name: "Activity", exact: true })).toContainText(
+      "Interest charged (20%, once)",
+    );
     await expectNoSeriousA11yIssues(page);
     await expectNoHorizontalScroll(page);
 

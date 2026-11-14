@@ -1295,6 +1295,7 @@
         "amount": "Amount",
         "paidOut": "Loan paid out by {method}",
         "interest": "Interest charged ({rate} × {months, plural, one {# month} other {# months}})",
+        "interestOnce": "Interest charged ({rate}, once)",
         "other": "{source}: {component}",
         "system": "System",
         "note": "Balances are calculated from the ledger. No entry can be edited; mistakes are reversed with approval.",

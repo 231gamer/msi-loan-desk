@@ -243,10 +243,12 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
     if (row.source_type === "disbursement" && row.component === "principal")
       return t("activity.paidOut", { method: methodLabel.toLowerCase() });
     if (row.source_type === "disbursement" && row.component === "interest")
-      return t("activity.interest", {
-        rate: formatRateBps(loan.interest_rate_bps ?? 0),
-        months: loan.term_months,
-      });
+      return loan.repayment_type === "installments"
+        ? t("activity.interestOnce", { rate: formatRateBps(loan.interest_rate_bps ?? 0) })
+        : t("activity.interest", {
+            rate: formatRateBps(loan.interest_rate_bps ?? 0),
+            months: loan.term_months,
+          });
     const component = t(`activity.components.${(row.component ?? "principal") as "principal"}`);
     if (row.source_type === "payment" || row.source_type === "field_payment")
       return t("activity.payment", { component });
