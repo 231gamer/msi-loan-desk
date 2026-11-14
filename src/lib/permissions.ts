@@ -26,6 +26,9 @@ export const ROUTES = {
   "/login": "public",
   "/verify/[token]": "public",
   "/api/health": "public",
+  "/offline": "public", // static "you're offline" page; no data (SPEC addendum B)
+  "/offline/field": "public", // static shell; shows only what the officer's own phone saved
+  "/api/field/payments": ["loan_officer"], // offline payments sent by the service worker
   "/api/pdf/[kind]/[id]": "staff", // SPEC 10.1; each kind checks the record and role again
   "/api/reminder/[loanId]": "staff", // SPEC 10.3: logs the tap, then opens WhatsApp
   "/api/reports/[report]": ["ceo", "manager", "accountant", "admin"], // SPEC 10.2: CSV export

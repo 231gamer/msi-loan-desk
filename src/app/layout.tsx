@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
+import { ServiceWorker } from "@/components/pwa/service-worker";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "./globals.css";
@@ -21,6 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: t("title"), template: `%s · ${t("title")}` },
     description: t("description"),
     robots: { index: false, follow: false },
+    appleWebApp: { capable: true, title: t("title"), statusBarStyle: "default" },
   };
 }
 
@@ -36,6 +38,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full bg-page font-sans text-ink antialiased">
         <NextIntlClientProvider>
           <TooltipProvider>{children}</TooltipProvider>
+          <ServiceWorker />
         </NextIntlClientProvider>
       </body>
     </html>

@@ -61,8 +61,9 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except Next.js assets, static files and the auth route that signs users out.
+  // Everything except Next.js assets, static files, the service worker, the app manifest and the
+  // auth route that signs users out.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|brand/|auth/sign-out|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|brand/|icons/|sw\\.js|manifest\\.webmanifest|auth/sign-out|.*\\.(?:png|jpg|jpeg|svg|webp|ico)$).*)",
   ],
 };

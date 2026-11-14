@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { SubmitButton } from "@/components/ui/pending";
 import { isActive } from "@/lib/navigation";
+import { useSignOutGuard } from "@/components/pwa/use-sign-out-guard";
 import { cn } from "@/lib/utils";
 
 import { NavItemIcon } from "./nav-icon";
@@ -44,6 +45,7 @@ export function BottomNav({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const guardSignOut = useSignOutGuard();
   const tabs = items.slice(0, MAX_TABS);
 
   const tabClass = (active: boolean) =>
@@ -121,7 +123,7 @@ export function BottomNav({
               {labels.changePassword}
             </Link>
           </div>
-          <form action="/auth/sign-out" method="post" className="mx-3">
+          <form action="/auth/sign-out" method="post" onSubmit={guardSignOut} className="mx-3">
             <SubmitButton className="flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-sm font-semibold text-ink hover:bg-page">
               <LogOut aria-hidden="true" data-busy-hide="" className="size-5" />
               {labels.signOut}

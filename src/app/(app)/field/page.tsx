@@ -15,6 +15,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { LoanPillText } from "../loans/loan-pill";
+import { FieldOfflineSync } from "./offline-sync";
 import { LinkPending } from "@/components/ui/pending";
 
 /*
@@ -101,11 +102,25 @@ async function FieldContent() {
   const cash = cashResult.data;
   const cashTotal = cash.reduce((sum, payment) => sum + BigInt(payment.amount_cents), 0n);
   const firstName = staff.fullName.split(" ")[0] ?? staff.fullName;
+  // What the phone keeps for offline use: no phone numbers, addresses or documents (addendum B).
+  const offlineLoans = loans.map((loan) => {
+    const schedule = scheduleByLoan.get(loan.id);
+    const owed = String(byLoan.get(loan.id)?.total_out ?? 0);
+    return {
+      id: loan.id,
+      loanNo: loan.loan_no,
+      customer: customerName(loan.customers),
+      dueCents: schedule !== undefined ? String(schedule.due_now_cents ?? 0) : owed,
+      owedCents: owed,
+      dueDate: loan.due_date,
+    };
+  });
 
   return (
     <>
       <TopBar title={t("greeting", { name: firstName })} staff={staff} />
       <div className="mx-auto grid w-full max-w-xl animate-in grid-cols-1 gap-4 p-4 duration-200 fade-in lg:p-6">
+        <FieldOfflineSync userId={staff.id} userName={staff.fullName} loans={offlineLoans} />
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-card bg-primary p-4 text-white">
             <p className="text-sm text-white/85">{t("toVisit")}</p>

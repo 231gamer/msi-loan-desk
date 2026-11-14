@@ -9,6 +9,7 @@ import type * as React from "react";
 import { SubmitButton } from "@/components/ui/pending";
 import { Tooltip } from "@/components/ui/tooltip";
 import { SIDEBAR_COOKIE, isActive, type NavIcon } from "@/lib/navigation";
+import { useSignOutGuard } from "@/components/pwa/use-sign-out-guard";
 import { cn } from "@/lib/utils";
 
 import { NavItemIcon } from "./nav-icon";
@@ -132,8 +133,9 @@ const SidebarLabelsContext = createContext<SidebarLabels>({
 export function SidebarSignOut() {
   const collapsed = useContext(CollapsedContext);
   const labels = useContext(SidebarLabelsContext);
+  const guardSignOut = useSignOutGuard();
   return (
-    <form action="/auth/sign-out" method="post">
+    <form action="/auth/sign-out" method="post" onSubmit={guardSignOut}>
       <Tooltip side="right" content={labels.signOutHint}>
         <SubmitButton
           className={cn(rowClass(collapsed), "text-on-primary-muted hover:bg-white/10 hover:text-white")}

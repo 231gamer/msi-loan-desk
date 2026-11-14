@@ -2620,5 +2620,74 @@
       "trialOff": "Does not balance: debits {debit}, credits {credit}. Tell the accountant."
     },
     "tableLabel": "{heading} table"
+  },
+  "offline": {
+    "title": "You're offline",
+    "body": "This page needs a connection. Check your data or Wi-Fi and try again.",
+    "retry": "Try again",
+    "fieldLink": "Collect payments offline",
+    "fieldHint": "Your saved Field cash list works without signal.",
+    "field": {
+      "title": "Field cash (offline)",
+      "statusOffline": "No signal. Payments you record are saved on this phone and sent when you're back online.",
+      "statusOnline": "You're back online.",
+      "openOnline": "Open Field cash",
+      "savedAt": "List saved {when} for {name}.",
+      "noList": "No saved list on this phone. Open Field cash once with signal, then it works offline for {hours} hours.",
+      "visitsHeading": "Loans to visit",
+      "empty": "No loans in your saved list.",
+      "owes": "Owes {amount}",
+      "dueNow": "Collect {amount}",
+      "collect": "Collect",
+      "collectLabel": "Collect from {name}",
+      "form": {
+        "heading": "Collect from {name}",
+        "amount": "Amount ($)",
+        "method": "Paid by",
+        "methods": {
+          "cash": "Cash",
+          "mobile_money": "Mobile money",
+          "bank": "Bank transfer"
+        },
+        "reference": "Transaction reference",
+        "save": "Save payment",
+        "cancel": "Cancel",
+        "invalidAmount": "Enter an amount in dollars, for example 50.00.",
+        "moreThanOwed": "That is more than the {amount} owed when the list was saved. The server will refuse it if it is still too much.",
+        "referenceRequired": "Enter the transaction reference (at least 4 characters).",
+        "saveFailed": "The payment could not be saved on this phone. Write it down and try again."
+      },
+      "slip": {
+        "heading": "Payment saved: not sent yet",
+        "reference": "Reference",
+        "customer": "Customer",
+        "loan": "Loan",
+        "amount": "Amount",
+        "method": "Paid by",
+        "collected": "Collected",
+        "note": "This is not the official receipt. The numbered receipt follows when the payment is sent.",
+        "done": "Done"
+      },
+      "queue": {
+        "heading": "Payments on this phone",
+        "none": "No payments waiting.",
+        "pending": "Waiting to send",
+        "sent": "Sent: receipt {receipt}",
+        "failed": "Not recorded: {reason}",
+        "failedHelp": "The server refused this payment. Keep the cash and give the slip to the cashier.",
+        "dismiss": "Remove from this phone",
+        "dismissConfirm": "Remove this refused payment from the phone? Do this only after the cashier has dealt with it.",
+        "sendNow": "Send now",
+        "openReceipt": "Open receipt"
+      },
+      "recordedHere": "{amount} already recorded on this phone since the list was saved."
+    },
+    "sync": {
+      "waiting": "{count, plural, one {# payment} other {# payments}} taken offline {count, plural, one {is} other {are}} waiting to send.",
+      "sending": "Sending…",
+      "failed": "{count, plural, one {# offline payment was} other {# offline payments were}} refused by the server.",
+      "review": "Review",
+      "signOutWarning": "{count, plural, one {# payment taken offline has} other {# payments taken offline have}} not been sent yet. {count, plural, one {It stays} other {They stay}} on this phone and will send the next time you sign in here. Sign out anyway?"
+    }
   }
 }

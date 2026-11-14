@@ -17,12 +17,15 @@ const ALL: readonly Role[] = ROLES;
  * Expected access, written out independently from SPEC section 9 (plus the SPEC 4 additions
  * documented in permissions.ts). If the map changes, this table must change on purpose.
  */
-const EXPECTED: Record<Exclude<RouteKey, "/login" | "/verify/[token]" | "/api/health">, readonly Role[]> = {
+type PublicRoute = "/login" | "/verify/[token]" | "/api/health" | "/offline" | "/offline/field";
+
+const EXPECTED: Record<Exclude<RouteKey, PublicRoute>, readonly Role[]> = {
   "/account/password": ALL,
   "/dashboard": ALL,
   "/api/pdf/[kind]/[id]": ALL,
   "/api/reminder/[loanId]": ALL,
   "/api/reports/[report]": ["ceo", "manager", "accountant", "admin"],
+  "/api/field/payments": ["loan_officer"],
   "/customers": ALL,
   "/customers/new": ["loan_officer", "manager", "admin"],
   "/customers/[id]": ALL,
@@ -63,7 +66,14 @@ describe("canAccess", () => {
   }
 
   it("covers every route in the map", () => {
-    const covered = new Set([...Object.keys(EXPECTED), "/login", "/verify/[token]", "/api/health"]);
+    const covered = new Set([
+      ...Object.keys(EXPECTED),
+      "/login",
+      "/verify/[token]",
+      "/api/health",
+      "/offline",
+      "/offline/field",
+    ]);
     expect(new Set(Object.keys(ROUTES))).toEqual(covered);
   });
 });
@@ -94,6 +104,12 @@ describe("isPublicPath", () => {
     expect(isPublicPath("/login")).toBe(true);
     expect(isPublicPath("/verify/token123")).toBe(true);
     expect(isPublicPath("/api/health")).toBe(true);
+  });
+
+  it("allows the two static offline pages, which carry no data", () => {
+    expect(isPublicPath("/offline")).toBe(true);
+    expect(isPublicPath("/offline/field")).toBe(true);
+    expect(isPublicPath("/api/field/payments")).toBe(false);
   });
 
   it("protects everything else, including unknown paths", () => {
