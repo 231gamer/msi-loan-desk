@@ -183,7 +183,7 @@ async function DayCloseContent({ searchParams }: PageProps<"/day-close">) {
           </button>
         </form>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr] lg:gap-5">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-5">
           <Card id="day-expected" title={t("expected.heading")}>
             {row(t("expected.opening"), formatMoney(summary.opening_cents))}
             {collections.length > 0

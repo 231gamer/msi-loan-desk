@@ -291,6 +291,14 @@ async function CustomerContent({ params, searchParams }: PageProps<"/customers/[
               requester: people.get(pending.requested_by) ?? "",
               when: ageText(pending.requested_at),
             })}
+            {canAccess(staff.role, "/approvals") && (staff.role === "manager" || staff.role === "ceo") ? (
+              <>
+                {" "}
+                <Link href="/approvals" className="font-semibold whitespace-nowrap underline">
+                  {t("openApprovals")}
+                </Link>
+              </>
+            ) : null}
           </Callout>
         ) : null}
 
@@ -501,15 +509,6 @@ async function CustomerContent({ params, searchParams }: PageProps<"/customers/[
             </div>
           </div>
         )}
-        {canAccess(staff.role, "/approvals") &&
-        pending !== null &&
-        (staff.role === "manager" || staff.role === "ceo") ? (
-          <p className="text-sm">
-            <Link href="/approvals" className="font-semibold">
-              {t("openApprovals")}
-            </Link>
-          </p>
-        ) : null}
       </div>
     </>
   );

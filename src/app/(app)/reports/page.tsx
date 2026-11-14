@@ -30,7 +30,7 @@ async function ReportsIndex() {
             <li key={key}>
               <Link
                 href={`/reports/${key}`}
-                className="grid h-full gap-1 rounded-card border border-line bg-surface p-4 text-ink hover:border-primary hover:text-ink sm:p-5"
+                className="flex h-full flex-col gap-1 rounded-card border border-line bg-surface p-4 text-ink hover:border-primary hover:text-ink sm:p-5"
               >
                 <span className="font-bold text-primary">{t(`titles.${key}`)}</span>
                 <span className="text-sm text-ink-muted">{t(`descriptions.${key}`)}</span>
