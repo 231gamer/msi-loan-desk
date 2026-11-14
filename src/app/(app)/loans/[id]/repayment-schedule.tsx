@@ -64,7 +64,7 @@ export async function RepaymentSchedule({ rows }: { rows: InstallmentRow[] }) {
 
       <ScrollRegion label={t("label")} className="mt-3 hidden md:block">
         <table className="w-full border-collapse text-sm">
-          <thead className="bg-subtle text-left text-xs text-ink-muted">
+          <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
             <tr>
               {(["no", "due", "amount", "paid", "owed", "status"] as const).map((column) => (
                 <th

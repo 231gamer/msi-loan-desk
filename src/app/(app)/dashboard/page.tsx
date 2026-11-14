@@ -178,7 +178,7 @@ async function DashboardContent({ searchParams }: { searchParams: PageProps<"/da
         </ul>
         <ScrollRegion label={t("dueTable")} className="hidden md:block">
           <table className="w-full min-w-[640px] border-collapse text-sm">
-            <thead className="bg-subtle text-left text-xs text-ink-muted">
+            <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
               <tr>
                 {(["customer", "loan", "branch", "dueDate", "owes", "status"] as const).map((column) => (
                   <th

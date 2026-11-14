@@ -979,15 +979,17 @@
       "approve": "Approve",
       "reject": "Reject",
       "sending": "Saving…",
-      "notePlaceholder": "Reason (required to reject)",
+      "notePlaceholder": "Why is this being rejected?",
       "noteLabel": "Reason for {title}",
       "noteRequired": "Give the reason for rejecting.",
       "confirmReject": "Reject \"{title}\"?",
       "confirmReason": "Reason: {reason}",
       "yesReject": "Yes, reject",
       "cancel": "Cancel",
-      "boardPlaceholder": "Board reference (required to approve) or reason to reject",
-      "boardRequired": "Enter the board reference to approve a write-off."
+      "boardPlaceholder": "For example: Board minute 2026/03-4",
+      "boardRequired": "Enter the board reference to approve a write-off.",
+      "noteFieldLabel": "Reason for rejecting",
+      "boardLabel": "Board reference (to approve) or reason (to reject)"
     },
     "loanAmount": "Amount",
     "loanInterest": "Interest",
@@ -1036,7 +1038,8 @@
     "dayExpected": "Expected cash",
     "dayCounted": "Counted",
     "dayVariance": "Variance",
-    "dayLockNote": "Approving locks this day for the branch; nothing more can be posted to it unless it is reopened."
+    "dayLockNote": "Approving locks this day for the branch; nothing more can be posted to it unless it is reopened.",
+    "requestMeta": "Requested by, and decision for {title}"
   },
   "guarantors": {
     "heading": "Guarantors (optional)",

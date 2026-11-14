@@ -229,7 +229,7 @@ async function CustomersContent({ searchParams }: { searchParams: PageProps<"/cu
               {/* Tablets and desktop: table. */}
               <ScrollRegion label={t("tableLabel")} className="mt-2 hidden md:block">
                 <table className="w-full min-w-[760px] border-collapse text-sm">
-                  <thead className="bg-subtle text-left text-xs text-ink-muted">
+                  <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
                       <th scope="col" className="px-4 py-2.5 font-semibold">
                         {t("columns.customer")}

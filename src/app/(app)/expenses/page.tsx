@@ -119,14 +119,17 @@ async function ExpensesContent({ searchParams }: PageProps<"/expenses">) {
             <h2 id="expense-list" className="text-base font-bold text-ink">
               {t("listHeading")}
             </h2>
-            <nav aria-label={t("tabsLabel")} className="flex flex-wrap gap-2">
+            <nav
+              aria-label={t("tabsLabel")}
+              className="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+            >
               {TABS.map((target) => (
                 <Link
                   key={target}
                   href={href({ tab: target })}
                   aria-current={target === tab ? "page" : undefined}
                   className={cn(
-                    "inline-flex min-h-11 items-center rounded-control border px-4 text-sm font-semibold whitespace-nowrap lg:min-h-10",
+                    "inline-flex min-h-11 shrink-0 items-center rounded-control border px-4 text-sm font-semibold whitespace-nowrap lg:min-h-10",
                     target === tab
                       ? "border-primary bg-primary text-white hover:text-white"
                       : "border-line-input bg-surface text-ink hover:bg-page hover:text-ink",
@@ -142,7 +145,7 @@ async function ExpensesContent({ searchParams }: PageProps<"/expenses">) {
           ) : (
             <ScrollRegion label={t("tableLabel")}>
               <table className="w-full min-w-[880px] border-collapse text-sm">
-                <thead className="bg-subtle text-left text-xs text-ink-muted">
+                <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                   <tr>
                     {(
                       [

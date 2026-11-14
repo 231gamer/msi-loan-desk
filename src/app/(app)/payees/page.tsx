@@ -51,7 +51,7 @@ async function PayeesContent() {
           ) : (
             <ScrollRegion label={t("tableLabel")}>
               <table className="w-full min-w-[720px] border-collapse text-sm">
-                <thead className="bg-subtle text-left text-xs text-ink-muted">
+                <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                   <tr>
                     {(["name", "type", "phone", "owed", "edit"] as const).map((column) => (
                       <th

@@ -284,7 +284,7 @@ async function PaymentsContent({ searchParams }: PageProps<"/payments">) {
               </ul>
               <ScrollRegion label={t("tableLabel")} className="hidden md:block">
                 <table className="w-full min-w-[960px] border-collapse text-sm">
-                  <thead className="bg-subtle text-left text-xs text-ink-muted">
+                  <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
                       {(
                         [

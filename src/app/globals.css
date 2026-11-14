@@ -188,6 +188,40 @@
 }
 
 /*
+ * Key facts as label / value pairs (approvals, loan details): a thin rule on the left, labels in
+ * muted text, values in semibold. Each pair may be wrapped in a <div>; the wrapper is flattened.
+ */
+@layer components {
+  .kv {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, max-content) minmax(0, 1fr);
+    column-gap: 1.25rem;
+    row-gap: 0.4rem;
+    align-items: baseline;
+    border-left: 2px solid var(--color-line);
+    padding-left: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .kv > div {
+    display: contents;
+  }
+
+  .kv dt {
+    color: var(--color-ink-muted);
+    font-size: 0.8125rem;
+    font-weight: 500;
+  }
+
+  .kv dd {
+    margin: 0;
+    color: var(--color-ink);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+}
+
+/*
  * Busy state: any button or link marked aria-busy="true" (an action in progress, a page loading)
  * shows a small spinner before its label. The element is also disabled or ignored meanwhile.
  */

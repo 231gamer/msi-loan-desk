@@ -517,7 +517,7 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
             ) : (
               <ScrollRegion label={t("activity.table")} className="mt-3">
                 <table className="w-full min-w-[520px] border-collapse text-sm">
-                  <thead className="bg-subtle text-left text-xs text-ink-muted">
+                  <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
                       <th scope="col" className="px-4 py-2.5 font-semibold">
                         {t("activity.date")}
