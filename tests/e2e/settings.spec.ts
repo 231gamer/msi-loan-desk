@@ -72,9 +72,13 @@ test.describe("settings (FR-02; M0 acceptance: audit rows on settings change)", 
 
   test("the company name cannot be empty", async ({ page }) => {
     await openSettings(page);
-    await page.getByLabel("Company name").fill("");
-    await page.getByRole("button", { name: "Save changes" }).first().click();
-    await expect(page.getByText("This field is required.")).toBeVisible();
+    // A clear that lands before the form has hydrated is undone by it, so clear and save again
+    // until the form has really validated the empty name.
+    await expect(async () => {
+      await page.getByLabel("Company name").fill("");
+      await page.getByRole("button", { name: "Save changes" }).first().click();
+      await expect(page.getByText("This field is required.")).toBeVisible({ timeout: 1000 });
+    }).toPass({ timeout: 15_000 });
   });
 
   test("rule limits accept dollars, store cents and reject fractions of a cent", async ({
