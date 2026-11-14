@@ -179,10 +179,10 @@ async function ExpensesContent({ searchParams }: PageProps<"/expenses">) {
                         {row.accounts.code} · {row.accounts.name}
                       </td>
                       <td className="px-4 py-3">{row.payees?.name ?? "–"}</td>
-                      <td className="tabular px-4 py-3">
+                      <td className="tabular px-4 py-3 whitespace-nowrap">
                         {row.paid_from?.code ?? (row.paid_now ? "–" : t("onCredit"))}
                       </td>
-                      <td className="tabular px-4 py-3 text-right font-semibold">
+                      <td className="tabular px-4 py-3 text-right font-semibold whitespace-nowrap">
                         {formatMoney(row.amount_cents)}
                       </td>
                       <td className="px-4 py-3">

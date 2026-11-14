@@ -278,14 +278,22 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
                         className="grid gap-1 px-4 py-3 text-ink hover:bg-page hover:text-ink"
                       >
                         <span className="flex items-center justify-between gap-3">
-                          <span className="font-semibold">{customerName(row.customers)}</span>
+                          <span className="min-w-0 font-semibold break-words">
+                            {customerName(row.customers)}
+                          </span>
                           <StatusBadge tone={pill.tone}>
                             <LoanPillText pill={pill} />
                           </StatusBadge>
                         </span>
                         <span className="tabular text-sm text-ink-muted">
-                          {row.loan_no} · {t("lent", { amount: formatMoney(row.principal_cents) })} ·{" "}
-                          {t("owes", { amount: formatMoney(balance?.total_out ?? 0) })}
+                          {row.loan_no} ·{" "}
+                          <span className="whitespace-nowrap">
+                            {t("lent", { amount: formatMoney(row.principal_cents) })}
+                          </span>{" "}
+                          ·{" "}
+                          <span className="whitespace-nowrap">
+                            {t("owes", { amount: formatMoney(balance?.total_out ?? 0) })}
+                          </span>
                         </span>
                       </Link>
                     </li>
@@ -293,23 +301,23 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
                 })}
               </ul>
               <ScrollRegion label={t("tableLabel")} className="hidden md:block">
-                <table className="w-full min-w-[880px] border-collapse text-sm">
+                <table className="w-full min-w-[820px] border-collapse text-sm">
                   <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
-                      {(
-                        ["loan", "customer", "branch", "officer", "lent", "due", "owes", "status"] as const
-                      ).map((column) => (
-                        <th
-                          key={column}
-                          scope="col"
-                          className={cn(
-                            "px-4 py-2.5 font-semibold",
-                            ["lent", "owes"].includes(column) && "text-right",
-                          )}
-                        >
-                          {t(`columns.${column}`)}
-                        </th>
-                      ))}
+                      {(["loan", "customer", "branchOfficer", "lent", "due", "owes", "status"] as const).map(
+                        (column) => (
+                          <th
+                            key={column}
+                            scope="col"
+                            className={cn(
+                              "px-4 py-2.5 font-semibold",
+                              ["lent", "owes"].includes(column) && "text-right",
+                            )}
+                          >
+                            {t(`columns.${column}`)}
+                          </th>
+                        ),
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -331,21 +339,25 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
                               {row.loan_no}
                             </Link>
                           </td>
-                          <td className="px-4 py-3">{customerName(row.customers)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            {branchNames.get(row.branch_id) ?? ""}
-                          </td>
+                          <td className="px-4 py-3 font-medium">{customerName(row.customers)}</td>
                           <td className="px-4 py-3">
-                            {row.officer_id === null ? "–" : (names.get(row.officer_id) ?? "")}
+                            <span className="block whitespace-nowrap">
+                              {branchNames.get(row.branch_id) ?? ""}
+                            </span>
+                            <span className="block text-[13px] whitespace-nowrap text-ink-muted">
+                              {row.officer_id === null ? "–" : (names.get(row.officer_id) ?? "")}
+                            </span>
                           </td>
-                          <td className="tabular px-4 py-3 text-right">{formatMoney(row.principal_cents)}</td>
+                          <td className="tabular px-4 py-3 text-right whitespace-nowrap">
+                            {formatMoney(row.principal_cents)}
+                          </td>
                           <td className="tabular px-4 py-3 whitespace-nowrap">
                             {row.due_date === null ? t("notSet") : formatDate(row.due_date)}
                           </td>
-                          <td className="tabular px-4 py-3 text-right">
+                          <td className="tabular px-4 py-3 text-right font-semibold whitespace-nowrap">
                             {formatMoney(balance?.total_out ?? 0)}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <StatusBadge tone={pill.tone}>
                               <LoanPillText pill={pill} />
                             </StatusBadge>

@@ -267,29 +267,20 @@ async function CollateralContent({ searchParams }: PageProps<"/collateral">) {
                 })}
               </ul>
               <ScrollRegion label={t("tableLabel")} className="hidden md:block">
-                <table className="w-full min-w-[960px] border-collapse text-sm">
+                <table className="w-full min-w-[820px] border-collapse text-sm">
                   <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
-                      {(
-                        [
-                          "item",
-                          "description",
-                          "identifier",
-                          "owner",
-                          "loan",
-                          "location",
-                          "value",
-                          "status",
-                        ] as const
-                      ).map((column) => (
-                        <th
-                          key={column}
-                          scope="col"
-                          className={cn("px-4 py-2.5 font-semibold", column === "value" && "text-right")}
-                        >
-                          {t(`columns.${column}`)}
-                        </th>
-                      ))}
+                      {(["item", "identifier", "ownerLoan", "location", "value", "status"] as const).map(
+                        (column) => (
+                          <th
+                            key={column}
+                            scope="col"
+                            className={cn("px-4 py-2.5 font-semibold", column === "value" && "text-right")}
+                          >
+                            {t(`columns.${column}`)}
+                          </th>
+                        ),
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -297,20 +288,27 @@ async function CollateralContent({ searchParams }: PageProps<"/collateral">) {
                       const badge = status(item);
                       return (
                         <tr key={item.id} className="border-t border-page">
-                          <td className="tabular px-4 py-3 whitespace-nowrap">
-                            <Link href={`/collateral/${item.id}`} className="font-semibold">
+                          <td className="px-4 py-3">
+                            <Link
+                              href={`/collateral/${item.id}`}
+                              className="tabular block font-semibold whitespace-nowrap"
+                            >
                               {item.code}
                             </Link>
+                            <span className="block text-[13px] text-ink-muted">{item.description}</span>
                           </td>
-                          <td className="px-4 py-3">{item.description}</td>
                           <td className="tabular px-4 py-3">{identifier(item)}</td>
-                          <td className="px-4 py-3">{customerName(item.customers)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">{loanCell(item)}</td>
+                          <td className="px-4 py-3">
+                            <span className="block font-medium">{customerName(item.customers)}</span>
+                            <span className="block text-[13px] whitespace-nowrap text-ink-muted">
+                              {loanCell(item)}
+                            </span>
+                          </td>
                           <td className="px-4 py-3">{location(item)}</td>
-                          <td className="tabular px-4 py-3 text-right">
+                          <td className="tabular px-4 py-3 text-right whitespace-nowrap">
                             {formatMoney(item.estimated_value_cents)}
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <StatusBadge tone={badge.tone}>{badge.text}</StatusBadge>
                           </td>
                         </tr>

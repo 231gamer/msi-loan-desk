@@ -178,10 +178,10 @@ async function PaymentsContent({ searchParams }: PageProps<"/payments">) {
             action="/payments"
             role="search"
             aria-label={t("filters.label")}
-            className="grid gap-4 border-b border-page p-4 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] lg:items-end"
+            className="grid gap-4 border-b border-page p-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-end"
           >
             {filters.older !== "" ? <input type="hidden" name="older" value="1" /> : null}
-            <Field id="payments-q" label={t("filters.q")} className="sm:col-span-2 lg:col-span-1">
+            <Field id="payments-q" label={t("filters.q")} className="sm:col-span-2">
               <input
                 id="payments-q"
                 name="q"
@@ -283,21 +283,11 @@ async function PaymentsContent({ searchParams }: PageProps<"/payments">) {
                 })}
               </ul>
               <ScrollRegion label={t("tableLabel")} className="hidden md:block">
-                <table className="w-full min-w-[960px] border-collapse text-sm">
+                <table className="w-full min-w-[820px] border-collapse text-sm">
                   <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
                       {(
-                        [
-                          "receipt",
-                          "date",
-                          "customer",
-                          "loan",
-                          "method",
-                          "amount",
-                          "by",
-                          "status",
-                          "actions",
-                        ] as const
+                        ["receipt", "customerLoan", "method", "amount", "by", "status", "actions"] as const
                       ).map((column) => (
                         <th
                           key={column}
@@ -319,32 +309,36 @@ async function PaymentsContent({ searchParams }: PageProps<"/payments">) {
                       return (
                         <tr key={row.id} className="border-t border-page align-top">
                           <td className="tabular px-4 py-3 whitespace-nowrap">
-                            <Link href={`/receipts/${row.id}`} className="font-semibold">
+                            <Link href={`/receipts/${row.id}`} className="block font-semibold">
                               {row.receipt_no}
                             </Link>
+                            <span className="block text-[13px] text-ink-muted">
+                              {formatDate(row.received_on)}
+                            </span>
                           </td>
-                          <td className="tabular px-4 py-3 whitespace-nowrap">
-                            {formatDate(row.received_on)}
-                          </td>
-                          <td className="px-4 py-3">{customerName(row.customers)}</td>
-                          <td className="tabular px-4 py-3 whitespace-nowrap">
-                            <Link href={`/loans/${row.loan_id}`}>{row.loans.loan_no}</Link>
+                          <td className="px-4 py-3">
+                            <span className="block font-medium">{customerName(row.customers)}</span>
+                            <Link href={`/loans/${row.loan_id}`} className="tabular block text-[13px]">
+                              {row.loans.loan_no}
+                            </Link>
                           </td>
                           <td className="px-4 py-3">{methodText(row)}</td>
-                          <td className="tabular px-4 py-3 text-right font-semibold">
+                          <td className="tabular px-4 py-3 text-right font-semibold whitespace-nowrap">
                             {formatMoney(row.amount_cents)}
                           </td>
                           <td className="px-4 py-3">
-                            {names.get(row.received_by) ?? ""}
-                            <span className="block text-xs text-ink-muted">
+                            <span className="block whitespace-nowrap">
+                              {names.get(row.received_by) ?? ""}
+                            </span>
+                            <span className="block text-[13px] text-ink-muted">
                               {branchNames.get(row.branch_id) ?? ""}
                               {row.collected_in_field ? ` · ${t("field")}` : ""}
                             </span>
                           </td>
-                          <td className="px-4 py-3">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <StatusBadge tone={status.tone}>{status.text}</StatusBadge>
                           </td>
-                          <td className="px-4 py-3 text-right">
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
                             {voidable(row) ? (
                               <VoidRequest paymentId={row.id} receiptNo={row.receipt_no} />
                             ) : null}

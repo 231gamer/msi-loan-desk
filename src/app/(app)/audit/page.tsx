@@ -10,6 +10,7 @@ import { ScrollRegion } from "@/components/ui/scroll-region";
 import { auditChanges } from "@/lib/audit-diff";
 import { requirePageAccess } from "@/lib/auth/staff";
 import { formatDateTime, parseBusinessDate } from "@/lib/format";
+import { customerName } from "@/lib/customers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +22,132 @@ import { LinkPending, SubmitButton } from "@/components/ui/pending";
  * Filters narrow what is shown; nothing on this page can hide, change or delete an entry.
  */
 const PAGE_SIZE = 25;
-const ENTITY_TYPES = ["setting", "branch", "profile", "app_environment"] as const;
+const ENTITY_TYPES = [
+  "loan",
+  "customer",
+  "payment",
+  "expense",
+  "collateral",
+  "recovery_case",
+  "approval_request",
+  "journal",
+  "day_close",
+  "issued_document",
+  "loan_product",
+  "payee",
+  "setting",
+  "branch",
+  "profile",
+  "app_environment",
+] as const;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/** "loan_product.updated" -> "Loan product updated", for an action or type with no label yet. */
+function humanize(key: string): string {
+  const text = key.replace(/[._]/g, " ").trim();
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** Where a record type has its own page. */
+const RECORD_HREF: Partial<Record<string, (id: string) => string>> = {
+  loan: (id) => `/loans/${id}`,
+  customer: (id) => `/customers/${id}`,
+  payment: (id) => `/receipts/${id}`,
+};
+
+type ServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+
+/**
+ * Readable names (loan number, receipt number, customer name...) for the records on this page,
+ * keyed "type:id". Records the reader cannot see, or types without a number, are left out.
+ */
+async function recordNames(
+  supabase: ServerClient,
+  rows: readonly { entity_type: string; entity_id: string | null }[],
+  labels: { approval: (type: string) => string; document: (kind: string) => string },
+): Promise<Map<string, string>> {
+  const ids = (type: string) => [
+    ...new Set(
+      rows
+        .filter((row) => row.entity_type === type && row.entity_id !== null && UUID.test(row.entity_id))
+        .map((row) => row.entity_id as string),
+    ),
+  ];
+  const lookups = [
+    { type: "loan", ids: ids("loan") },
+    { type: "customer", ids: ids("customer") },
+    { type: "payment", ids: ids("payment") },
+    { type: "expense", ids: ids("expense") },
+    { type: "collateral", ids: ids("collateral") },
+    { type: "recovery_case", ids: ids("recovery_case") },
+    { type: "journal", ids: ids("journal") },
+    { type: "loan_product", ids: ids("loan_product") },
+    { type: "payee", ids: ids("payee") },
+    { type: "approval_request", ids: ids("approval_request") },
+    { type: "issued_document", ids: ids("issued_document") },
+  ].filter((lookup) => lookup.ids.length > 0);
+
+  const read = async (type: string, list: string[]): Promise<[string, string][]> => {
+    switch (type) {
+      case "loan": {
+        const { data } = await supabase.from("loans").select("id, loan_no").in("id", list);
+        return (data ?? []).map((row) => [row.id, row.loan_no]);
+      }
+      case "customer": {
+        const { data } = await supabase
+          .from("customers")
+          .select("id, type, first_name, last_name, business_name")
+          .in("id", list);
+        return (data ?? []).map((row) => [row.id, customerName(row)]);
+      }
+      case "payment": {
+        const { data } = await supabase.from("payments").select("id, receipt_no").in("id", list);
+        return (data ?? []).map((row) => [row.id, row.receipt_no]);
+      }
+      case "expense": {
+        const { data } = await supabase.from("expenses").select("id, expense_no").in("id", list);
+        return (data ?? []).map((row) => [row.id, row.expense_no]);
+      }
+      case "collateral": {
+        const { data } = await supabase.from("collaterals").select("id, code").in("id", list);
+        return (data ?? []).map((row) => [row.id, row.code]);
+      }
+      case "recovery_case": {
+        const { data } = await supabase.from("recovery_cases").select("id, case_no").in("id", list);
+        return (data ?? []).map((row) => [row.id, row.case_no]);
+      }
+      case "journal": {
+        const { data } = await supabase.from("journals").select("id, journal_no").in("id", list);
+        return (data ?? []).map((row) => [row.id, row.journal_no]);
+      }
+      case "loan_product": {
+        const { data } = await supabase.from("loan_products").select("id, name").in("id", list);
+        return (data ?? []).map((row) => [row.id, row.name]);
+      }
+      case "payee": {
+        const { data } = await supabase.from("payees").select("id, name").in("id", list);
+        return (data ?? []).map((row) => [row.id, row.name]);
+      }
+      case "approval_request": {
+        const { data } = await supabase.from("approval_requests").select("id, type").in("id", list);
+        return (data ?? []).map((row) => [row.id, labels.approval(row.type)]);
+      }
+      case "issued_document": {
+        const { data } = await supabase.from("issued_documents").select("id, kind").in("id", list);
+        return (data ?? []).map((row) => [row.id, labels.document(row.kind)]);
+      }
+      default:
+        return [];
+    }
+  };
+
+  const results = await Promise.all(
+    lookups.map(async (lookup) =>
+      (await read(lookup.type, lookup.ids)).map(([id, name]) => [`${lookup.type}:${id}`, name] as const),
+    ),
+  );
+  return new Map(results.flat().filter(([, name]) => name !== null && name !== ""));
+}
 
 type Params = Awaited<PageProps<"/audit">["searchParams"]>;
 
@@ -50,9 +176,11 @@ export default async function AuditPage({ searchParams }: PageProps<"/audit">) {
 
 async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit">["searchParams"] }) {
   const staff = await requirePageAccess("/audit");
-  const [t, tRoles, params] = await Promise.all([
+  const [t, tRoles, tApprovals, tVerify, params] = await Promise.all([
     getTranslations("audit"),
     getTranslations("roles"),
+    getTranslations("approvals"),
+    getTranslations("verify"),
     searchParams,
   ]);
 
@@ -89,19 +217,40 @@ async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit"
   const total = count ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  const records = await recordNames(supabase, rows, {
+    approval: (type) =>
+      type in messages.approvals.types
+        ? tApprovals(`types.${type as keyof typeof messages.approvals.types}`)
+        : humanize(type),
+    document: (kind) =>
+      kind in messages.verify.kinds
+        ? tVerify(`kinds.${kind as keyof typeof messages.verify.kinds}`)
+        : humanize(kind),
+  });
+
   // Message keys cannot contain dots (next-intl nests on them), so "setting.updated" is "setting_updated".
   const actionLabel = (action: string) => {
     const key = action.replace(/\./g, "_");
     return key in messages.audit.actions
       ? t(`actions.${key as keyof typeof messages.audit.actions}`)
-      : action;
+      : humanize(action);
   };
-  const recordLabel = (type: string, id: string | null) => {
-    const typeLabel =
-      type in messages.audit.entities ? t(`entities.${type as keyof typeof messages.audit.entities}`) : type;
-    if (id === null) return typeLabel;
-    const name = type === "profile" ? names.get(id) : type === "branch" ? branchCodes.get(id) : id;
-    return `${typeLabel}: ${name ?? id}`;
+  const typeLabel = (type: string) =>
+    type in messages.audit.entities
+      ? t(`entities.${type as keyof typeof messages.audit.entities}`)
+      : humanize(type);
+  /** "Loan LN-BR2-00011", "Setting clock.override_at"; an id with no readable name is shortened. */
+  const recordName = (type: string, id: string | null): string | null => {
+    if (id === null) return null;
+    const name =
+      type === "profile"
+        ? names.get(id)
+        : type === "branch"
+          ? branchCodes.get(id)
+          : records.get(`${type}:${id}`);
+    if (name !== undefined) return name;
+    if (type === "document_sequence") return null;
+    return UUID.test(id) ? `#${id.slice(0, 8)}` : id;
   };
   const pageHref = (target: number) => {
     const search = new URLSearchParams();
@@ -184,6 +333,11 @@ async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit"
               {rows.map((row) => {
                 const changes = auditChanges(row.before, row.after);
                 const who = row.actor_id === null ? t("system") : (names.get(row.actor_id) ?? row.actor_id);
+                const name = recordName(row.entity_type, row.entity_id);
+                const href =
+                  row.entity_id !== null && records.has(`${row.entity_type}:${row.entity_id}`)
+                    ? RECORD_HREF[row.entity_type]?.(row.entity_id)
+                    : undefined;
                 return (
                   <li key={row.id} className="grid gap-1 px-4 py-3 sm:grid-cols-[11rem_1fr] sm:gap-4">
                     <p className="tabular text-sm text-ink-muted">{formatDateTime(row.at)}</p>
@@ -192,8 +346,16 @@ async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit"
                         <span className="font-semibold">{actionLabel(row.action)}</span>
                         <span className="text-ink-muted">
                           {" "}
-                          · {recordLabel(row.entity_type, row.entity_id)}
+                          · {typeLabel(row.entity_type)}
+                          {name === null ? "" : ": "}
                         </span>
+                        {name === null ? null : href === undefined ? (
+                          <span className="text-ink-muted">{name}</span>
+                        ) : (
+                          <Link href={href} className="font-medium">
+                            {name}
+                          </Link>
+                        )}
                       </p>
                       <p className="text-xs text-ink-muted">
                         {who}

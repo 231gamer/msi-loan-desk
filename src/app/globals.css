@@ -221,6 +221,21 @@
   }
 }
 
+/* Lists: a quiet hover on table rows, and loan numbers that never break across lines. */
+@layer components {
+  main table tbody tr {
+    transition: background-color 120ms ease-out;
+  }
+
+  main table tbody tr:hover {
+    background-color: var(--color-subtle);
+  }
+
+  main td a[href^="/loans/"] {
+    white-space: nowrap;
+  }
+}
+
 /*
  * Busy state: any button or link marked aria-busy="true" (an action in progress, a page loading)
  * shows a small spinner before its label. The element is also disabled or ignored meanwhile.
