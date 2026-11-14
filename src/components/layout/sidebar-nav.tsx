@@ -17,6 +17,8 @@ export interface NavLinkItem {
   key: NavIcon;
   href: string;
   label: string;
+  /** Shorter label for the phone tab bar, where a long name would wrap. */
+  shortLabel?: string;
   /** One line shown in the item's tooltip. */
   hint?: string;
   /** Count shown as a yellow pill (approvals waiting), with its accessible text. */
