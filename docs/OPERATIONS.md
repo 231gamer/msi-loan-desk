@@ -76,8 +76,8 @@ If the daily job did not run (for example the database was paused), a manager or
 
 ## 6. Backups and restore (SPEC 11)
 
-- **Daily**: Supabase Pro keeps daily backups (Dashboard → Database → Backups). Point-in-time recovery is an optional paid add-on.
-- **Weekly off-platform copy**:
+- **Nightly (automatic)**: LoanDesk runs on the Supabase Free plan, which keeps no downloadable backups. A GitHub Actions job backs up the database and the uploaded files every night at 02:17, encrypted, to Cloudflare R2. Daily copies are kept 30 days and monthly copies 12 months. Setup, restore and recovery steps are in `docs/BACKUPS.md`.
+- **Extra copy on your PC (optional)**:
   ```bash
   DATABASE_URL='postgresql://postgres.<ref>:<password>@<pooler-host>:5432/postgres' scripts/backup.sh /secure/backups
   ```

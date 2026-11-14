@@ -2,6 +2,10 @@
 
 All notable changes, one section per phase. Format follows Keep a Changelog.
 
+## [Nightly backups] 2026-11-14
+### Added
+- Nightly encrypted backup of the database and the uploaded files to Cloudflare R2 (`.github/workflows/backup.yml`, `scripts/backup-nightly.sh`): daily copies kept 30 days, monthly 12 months; encrypted with age for two key holders (Foday and MSI's CEO). Off until the repository variable `BACKUP_ENABLED` is `true`. Setup and restore steps in `docs/BACKUPS.md`.
+
 ## [Offline field cash and installable app] 2026-11-14
 ### Added
 - Installable app (SPEC addendum B): web app manifest and MSI icons; Chrome on Android offers "Install app" (full screen, home-screen icon).
