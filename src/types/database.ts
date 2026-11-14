@@ -1261,6 +1261,39 @@ export type Database = {
           },
         ];
       };
+      loan_installments: {
+        Row: {
+          amount_cents: number;
+          created_at: string;
+          due_date: string;
+          installment_no: number;
+          loan_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_cents: number;
+          created_at?: string;
+          due_date: string;
+          installment_no: number;
+          loan_id: string;
+        };
+        Update: {
+          amount_cents?: number;
+          created_at?: string;
+          due_date?: string;
+          installment_no?: number;
+          loan_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loan_installments_loan_id_fkey";
+            columns: ["loan_id"];
+            isOneToOne: false;
+            referencedRelation: "loans";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       loan_penalty_events: {
         Row: {
           base_cents: number;
@@ -1329,9 +1362,11 @@ export type Database = {
           created_at: string;
           default_term_months: number;
           id: string;
+          interest_basis: string;
           interest_method: string;
           interest_rate_bps: number;
           max_term_months: number;
+          min_term_months: number;
           name: string;
           penalty_base: string;
           penalty_max_periods: number;
@@ -1339,6 +1374,7 @@ export type Database = {
           penalty_rate_bps: number;
           rate_period: string;
           recovery_after_days: number;
+          repayment_type: string;
           updated_at: string;
           updated_by: string | null;
         };
@@ -1348,9 +1384,11 @@ export type Database = {
           created_at?: string;
           default_term_months: number;
           id?: string;
+          interest_basis?: string;
           interest_method?: string;
           interest_rate_bps: number;
           max_term_months: number;
+          min_term_months?: number;
           name: string;
           penalty_base?: string;
           penalty_max_periods: number;
@@ -1358,6 +1396,7 @@ export type Database = {
           penalty_rate_bps: number;
           rate_period?: string;
           recovery_after_days: number;
+          repayment_type?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -1366,9 +1405,11 @@ export type Database = {
           created_at?: string;
           default_term_months?: number;
           id?: string;
+          interest_basis?: string;
           interest_method?: string;
           interest_rate_bps?: number;
           max_term_months?: number;
+          min_term_months?: number;
           name?: string;
           penalty_base?: string;
           penalty_max_periods?: number;
@@ -1376,6 +1417,7 @@ export type Database = {
           penalty_rate_bps?: number;
           rate_period?: string;
           recovery_after_days?: number;
+          repayment_type?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -1407,6 +1449,8 @@ export type Database = {
           due_date: string | null;
           due_date_version: number;
           id: string;
+          installment_count: number | null;
+          interest_basis: string;
           interest_cents: number | null;
           interest_rate_bps: number | null;
           loan_no: string;
@@ -1421,6 +1465,7 @@ export type Database = {
           purpose: string | null;
           recovery_after_days: number | null;
           recovery_eligible: boolean;
+          repayment_type: string;
           status: string;
           submitted_at: string | null;
           term_months: number;
@@ -1444,6 +1489,8 @@ export type Database = {
           due_date?: string | null;
           due_date_version?: number;
           id?: string;
+          installment_count?: number | null;
+          interest_basis?: string;
           interest_cents?: number | null;
           interest_rate_bps?: number | null;
           loan_no: string;
@@ -1458,6 +1505,7 @@ export type Database = {
           purpose?: string | null;
           recovery_after_days?: number | null;
           recovery_eligible?: boolean;
+          repayment_type?: string;
           status?: string;
           submitted_at?: string | null;
           term_months: number;
@@ -1480,6 +1528,8 @@ export type Database = {
           due_date?: string | null;
           due_date_version?: number;
           id?: string;
+          installment_count?: number | null;
+          interest_basis?: string;
           interest_cents?: number | null;
           interest_rate_bps?: number | null;
           loan_no?: string;
@@ -1494,6 +1544,7 @@ export type Database = {
           purpose?: string | null;
           recovery_after_days?: number | null;
           recovery_eligible?: boolean;
+          repayment_type?: string;
           status?: string;
           submitted_at?: string | null;
           term_months?: number;
@@ -2384,6 +2435,14 @@ export type Database = {
       health_check: { Args: Record<PropertyKey, never>; Returns: Json };
       id_number_key: { Args: { p_id: string }; Returns: string };
       import_opening_balance: { Args: { p_entry: Json }; Returns: Json };
+      installment_schedule: {
+        Args: { p_count: number; p_start: string; p_total_cents: number };
+        Returns: {
+          amount_cents: number;
+          due_date: string;
+          installment_no: number;
+        }[];
+      };
       is_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       issue_document:
         | { Args: { p_entity_id: string; p_kind: string }; Returns: Json }
@@ -2435,6 +2494,10 @@ export type Database = {
           principal_out: number;
           total_out: number;
         }[];
+      };
+      loan_interest: {
+        Args: { p_basis: string; p_principal_cents: number; p_rate_bps: number; p_term_months: number };
+        Returns: number;
       };
       loan_next_penalty: { Args: { p_loan_id: string }; Returns: Json };
       loan_outstanding_as_of: { Args: { p_date: string; p_loan_id: string }; Returns: number };

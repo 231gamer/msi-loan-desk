@@ -9,6 +9,18 @@
 | Repository | `231gamer/msi-loan-desk` (private), default branch `main`. The old repository `ultimategamer231/msi`, branch `claude/new-session-6ictcc` and its PR #1 are gone; the history before the import is in `loandesk-full.bundle` |
 | Next step | Foday: Vercel Preview keys check, Supabase Pro (backups), company/branch/user set-up in Settings, then going live (`docs/OPERATIONS.md` section 4) and the pilot gate |
 
+## Installment loans plan (branch `feature/installment-loans`; agreed with MSI, approved by Foday 2026-11-14)
+
+Rules: interest charged once (principal x rate); equal monthly installments, floor(total / n) with the remainder on the last; first due one month after payout; no charge while inside the term ("behind schedule" only); after the final due date the existing overdue, penalty and recovery rules apply. Installments are covered only by what is paid toward principal and interest (penalty payments clear penalties). One-payment products and loans unchanged.
+
+| Block | Content | Done when |
+| --- | --- | --- |
+| IL.1 | Product repayment type, interest basis, minimum term; seeded "Installment loan (monthly)"; loan snapshot; `loan_interest`, `installment_schedule`; preview and submission; `loan_installments` written at payout (trigger, immutable); extensions refused; `tools/vectors.py` | pgTAP 38 |
+| IL.2 | Installment status from the ledger; due list "behind" group and installment amounts (due list, Due report, dashboard, Today); payment suggestion; receipt next installment; statement schedule; installment reminder text | pgTAP 39: arrears no penalty, default example, recovery, statement = ledger |
+| IL.3 | Settings product fields; wizard schedule; loan page schedule card, next installment and arrears; Extend hidden | e2e |
+| IL.4 | Due list tab, dashboard, Today, WhatsApp reminder, payment form, receipt, statement and agreement PDFs (new agreement text for installment loans) | e2e |
+| IL.5 | E2E flow at 390 and 1280; SPEC addendum, DECISIONS, USER_GUIDE, ROLES, CHANGELOG; full checks; manual run; screenshots; stop for approval (no push) | all checks green |
+
 ## Hosted setup (2026-11-09)
 
 | Step | Done |
@@ -219,3 +231,4 @@ Loans, collateral and total owed on the profile arrive with M3 and M6; the panel
 | 2026-11-11 | Hosted | Migration `20261115000100_temporary_passwords` pushed to `msi-loandesk` (advisor clean, no account flagged, RLS on every table); `feature/temporary-passwords-and-branding` merged to `main` (79141ba) and deployed; health ok, tab title MSI-Dashboard; Corex-admin signs in to the dashboard (Foday); Supabase Site URL and redirect URLs set (Foday) |
 | 2026-11-14 | Dashboard improvements | Phone cards for the dashboard due list (approved by Foday); e2e check at 390 and 1280; 356 unit, 217 e2e, smoke green. Sidebar user block to the top bar: mock-up sent, waiting for approval |
 | 2026-11-14 | Dashboard improvements | Version A approved: user and password key in the top bar, sign-out at the sidebar foot; sidebar icons with collapse to an icon rail (cookie `ld-sidebar`); tooltips (Radix) on menu items and shell and dashboard buttons; loading states (aria-busy spinner on 47 action buttons, busy search/filter and sign-out buttons, link spinners via `useLinkStatus`); 356 unit, 638 database, 225 e2e, smoke green. Merge approved by Foday |
+| 2026-11-14 | IL.1 | Installment products and loans in SQL: product fields, seeded product, snapshot, interest once, schedule at payout, extensions refused, vectors; 678 database tests |

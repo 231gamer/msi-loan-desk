@@ -71,3 +71,50 @@ late_owed2 = (P + I - 50000) + k1; late_k2 = pct(late_owed2, 2000)
 late_k3 = pct(late_owed2 + late_k2, 2000)
 print('T-33b daily', k1, k2, k3, 'owed', owed, '| late', k1, late_k2, late_k3)
 assert (k2, k3, owed) == (late_k2, late_k3, 135360) == (18800, 22560, 135360)
+
+# Installment loans (SPEC addendum, agreed with MSI 2026-11-14). Interest is charged ONCE:
+# principal x rate, whatever the number of months. The total is split into n equal monthly
+# installments of floor(total / n) cents; the last takes the remainder. Installment k falls due
+# k months after payout (month-end clamped from the payout day). Penalties start only after the
+# final due date, by the same rule as one-payment loans.
+from datetime import timedelta
+
+def interest_once(principal, bps):
+    return pct(principal, bps)
+
+def schedule(total, n, start):
+    base = total // n
+    return [(k, add_months(start, k), base if k < n else total - base * (n - 1)) for k in range(1, n + 1)]
+
+IL = [  # (principal, months, interest, total, installments)
+    (200000, 4, 40000, 240000, [60000] * 4),
+    (150000, 3, 30000, 180000, [60000] * 3),
+    (100000, 7, 20000, 120000, [17142] * 6 + [17148]),
+    (75000, 2, 15000, 90000, [45000] * 2),
+]
+for principal, n, interest, total, amounts in IL:
+    i = interest_once(principal, 2000)
+    s = schedule(principal + i, n, date(2026, 1, 15))
+    print('IL', principal, n, 'months: interest', i, 'total', principal + i, 'installments', [a for _, _, a in s])
+    assert (i, principal + i, [a for _, _, a in s]) == (interest, total, amounts)
+    assert sum(a for _, _, a in s) == total
+
+# Month-end clamping: paid out 31 Jan 2026 -> 28 Feb, 31 Mar, 30 Apr, 31 May.
+dates = [d for _, d, _ in schedule(180000, 4, date(2026, 1, 31))]
+print('IL dates from 31 Jan:', dates)
+assert dates == [date(2026, 2, 28), date(2026, 3, 31), date(2026, 4, 30), date(2026, 5, 31)]
+
+# Default example: $2,000 over 4 months paid out 15 Jan 2026; $1,800 paid by 15 May (interest
+# first, then principal), so $600 of principal is owed after the final due date. Penalties: 20% of
+# everything still owed every 7 days (outstanding_total base), at most 4; recovery from due + 30.
+s = schedule(240000, 4, date(2026, 1, 15))
+assert [d for _, d, _ in s] == [date(2026, 2, 15), date(2026, 3, 15), date(2026, 4, 15), date(2026, 5, 15)]
+final_due = s[-1][1]
+a = allocate(180000, 0, 40000, 200000)
+owed = 200000 - a['principal']
+pens = penalties(owed, owed, 2000, 4, 'outstanding_total')
+print('IL default: owed', owed, 'penalties', [(final_due + timedelta(days=7 * k), p) for k, _, p, _ in pens],
+      'recovery from', final_due + timedelta(days=30))
+assert owed == 60000
+assert [p for _, _, p, _ in pens] == [12000, 14400, 17280, 20736] and pens[-1][3] == 124416
+assert final_due + timedelta(days=7) == date(2026, 5, 22) and final_due + timedelta(days=30) == date(2026, 6, 14)
