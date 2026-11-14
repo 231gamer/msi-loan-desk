@@ -1098,6 +1098,7 @@
       "chooseCustomer": "Choose the customer first.",
       "product": "Loan product",
       "productRate": "{rate} per month",
+      "productRateOnce": "{rate} interest charged once, monthly installments",
       "principal": "Amount to lend ($)",
       "term": "Term",
       "months": "{count, plural, one {# month} other {# months}}",

@@ -298,7 +298,10 @@ export function LoanWizard({
                 >
                   {products.map((option) => (
                     <option key={option.id} value={option.id}>
-                      {option.name} · {t("productRate", { rate: formatRateBps(option.rateBps) })}
+                      {option.name} ·{" "}
+                      {t(option.repaymentType === "installments" ? "productRateOnce" : "productRate", {
+                        rate: formatRateBps(option.rateBps),
+                      })}
                     </option>
                   ))}
                 </select>
