@@ -21,6 +21,7 @@ import { LoanPillText } from "../loan-pill";
 
 import { OpenCaseForm, WriteOffForm } from "../../recovery/case-forms";
 import { CancelLoanForm, DisburseForm, ExtendLoanForm, SubmitDraftButton } from "./loan-actions";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /loans/[id] (all staff; SPEC 9, mock-up 07): summary, outstanding, details, activity from the
@@ -316,6 +317,7 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
                 href={`/payments/new?loan=${loan.id}`}
                 className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
               >
+                <LinkPending />
                 {t("actions.receive")}
               </Link>
             ) : null}
@@ -333,6 +335,7 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
                 href={`/recovery/${recoveryCase.id}`}
                 className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}
               >
+                <LinkPending />
                 {t("actions.viewCase", { case: recoveryCase.case_no })}
               </Link>
             ) : null}

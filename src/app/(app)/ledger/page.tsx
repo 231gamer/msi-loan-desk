@@ -17,6 +17,7 @@ import { CapitalInForm } from "./capital-in-form";
 import { ManualJournalForm } from "./manual-journal-form";
 
 import messages from "../../../../messages/en.json";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /ledger (accountant, manager, CEO, admin): journals with their lines, and the trial balance
@@ -227,6 +228,7 @@ async function Journals({ params }: { params: Params }) {
             {t("filters.apply")}
           </button>
           <Link href="/ledger" className={cn(buttonVariants({ variant: "ghost" }), "hover:text-ink")}>
+            <LinkPending />
             {t("filters.clear")}
           </Link>
         </div>
@@ -340,6 +342,7 @@ async function Journals({ params }: { params: Params }) {
                   href={pageHref(page - 1)}
                   className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                 >
+                  <LinkPending />
                   {t("previous")}
                 </Link>
               ) : null}
@@ -348,6 +351,7 @@ async function Journals({ params }: { params: Params }) {
                   href={pageHref(page + 1)}
                   className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                 >
+                  <LinkPending />
                   {t("next")}
                 </Link>
               ) : null}

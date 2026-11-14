@@ -8,6 +8,7 @@ import { getCurrentStaff } from "@/lib/auth/staff";
 import { formatDateTime } from "@/lib/format";
 
 import { PasswordForm } from "./password-form";
+import { SubmitButton } from "@/components/ui/pending";
 
 /*
  * /account/password: the only page an account that must set a new password can open (besides
@@ -67,12 +68,9 @@ async function PasswordContent() {
           </Link>
         )}
         <form action="/auth/sign-out" method="post">
-          <button
-            type="submit"
-            className="inline-flex min-h-11 items-center text-sm font-semibold text-ink-muted hover:text-ink hover:underline"
-          >
+          <SubmitButton className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-ink-muted hover:text-ink hover:underline">
             {t("signOut")}
-          </button>
+          </SubmitButton>
         </form>
       </div>
     </section>

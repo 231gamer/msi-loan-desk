@@ -108,7 +108,7 @@ export function CapitalInForm({ accounts, today }: { accounts: AccountOption[]; 
         {status?.tone === "success" ? <FormMessage tone="success">{tManual("sent")}</FormMessage> : null}
         {status?.tone === "error" ? <FormMessage tone="error">{tErrors(status.code)}</FormMessage> : null}
         <div>
-          <Button type="submit" disabled={pending}>
+          <Button aria-busy={pending} type="submit" disabled={pending}>
             {pending ? tManual("submitting") : tManual("submit")}
           </Button>
         </div>

@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { amountInWords } from "@/lib/amount-words";
 
 import { PrintButtons } from "./print-buttons";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /receipts/[id] (staff; SPEC 9, 10.1, mock-up 04): the receipt as printed, with print (A5 and
@@ -188,6 +189,7 @@ async function ReceiptContent({ params }: PageProps<"/receipts/[id]">) {
             href={`/loans/${receipt.loanId}`}
             className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
           >
+            <LinkPending />
             {t("done")}
           </Link>
         </div>

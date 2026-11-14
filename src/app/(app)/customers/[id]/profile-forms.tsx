@@ -76,7 +76,7 @@ export function StatusRequestForm({ customerId, current }: { customerId: string;
           {...describedBy("status-reason", undefined, missingReason ? t("reasonRequired") : undefined)}
         />
       </Field>
-      <Button type="submit" variant="secondary" disabled={pending}>
+      <Button aria-busy={pending} type="submit" variant="secondary" disabled={pending}>
         {pending ? t("sending") : t("submit")}
       </Button>
       {result?.tone === "success" ? (
@@ -171,7 +171,7 @@ export function AddDocumentForm({ customerId }: { customerId: string }) {
         />
       </Field>
       <div className="sm:col-span-2">
-        <Button type="submit" variant="secondary" disabled={pending}>
+        <Button aria-busy={pending} type="submit" variant="secondary" disabled={pending}>
           {pending ? t("adding") : t("submit")}
         </Button>
       </div>

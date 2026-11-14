@@ -63,6 +63,7 @@ export function VoidRequest({ paymentId, receiptNo }: { paymentId: string; recei
       {error !== null ? <FormMessage tone="error">{tErrors(error)}</FormMessage> : null}
       <div className="flex flex-wrap gap-2">
         <Button
+          aria-busy={pending}
           type="button"
           size="sm"
           disabled={pending}

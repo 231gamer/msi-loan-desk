@@ -69,6 +69,7 @@ export function CustomerForm({
   const [status, setStatus] = useState<Status>(null);
   const [overrideReason, setOverrideReason] = useState("");
   const [overrideError, setOverrideError] = useState(false);
+  const [overriding, setOverriding] = useState(false);
   const [files, setFiles] = useState<Partial<Record<SlotKind, File>>>({});
   const [fileErrors, setFileErrors] = useState<Partial<Record<SlotKind, boolean>>>({});
   // Files already uploaded in this visit, so a retry (for example after a duplicate warning) does
@@ -120,6 +121,7 @@ export function CustomerForm({
       return;
     }
     setOverrideError(false);
+    setOverriding(withOverride);
     startTransition(async () => {
       const prepared = await uploadAll();
       if (!Array.isArray(prepared)) {
@@ -424,6 +426,7 @@ export function CustomerForm({
               </Field>
               <div>
                 <Button
+                  aria-busy={pending && overriding}
                   type="button"
                   variant="secondary"
                   disabled={pending}
@@ -441,7 +444,7 @@ export function CustomerForm({
       {status?.tone === "error" ? <FormMessage tone="error">{tErrors(status.code)}</FormMessage> : null}
 
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button aria-busy={pending && !overriding} type="submit" disabled={pending}>
           {pending ? t("submitting") : editing ? t("submitEdit") : t("submit")}
         </Button>
         <Link

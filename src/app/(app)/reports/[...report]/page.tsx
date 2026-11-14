@@ -20,6 +20,7 @@ import {
 } from "@/lib/reports";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { SubmitButton } from "@/components/ui/pending";
 
 /*
  * /reports/<report> (SPEC 10.2; mock-up 15): filters, summary cards, the reconciliation check (a red
@@ -140,9 +141,7 @@ async function ReportContent({ params, searchParams }: PageProps<"/reports/[...r
             </Field>
           ) : null}
           {filters.range || filters.asOf || filters.branch ? (
-            <button type="submit" className={buttonVariants({ variant: "secondary" })}>
-              {t("show")}
-            </button>
+            <SubmitButton className={buttonVariants({ variant: "secondary" })}>{t("show")}</SubmitButton>
           ) : null}
         </form>
 

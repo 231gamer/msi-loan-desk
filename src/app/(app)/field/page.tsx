@@ -15,6 +15,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { LoanPillText } from "../loans/loan-pill";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /field (loan officer; SPEC 9, mock-up 01): my loans due today or overdue with Call and a big
@@ -171,6 +172,7 @@ async function FieldContent() {
                         "hover:text-white",
                       )}
                     >
+                      <LinkPending />
                       {t("collect")}
                     </Link>
                   </div>

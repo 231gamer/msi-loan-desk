@@ -41,7 +41,12 @@ export function SubmitDraftButton({ loanId }: { loanId: string }) {
   return (
     <div className="grid gap-2">
       <div>
-        <Button type="button" disabled={pending} onClick={() => run(() => submitDraft(loanId))}>
+        <Button
+          aria-busy={pending}
+          type="button"
+          disabled={pending}
+          onClick={() => run(() => submitDraft(loanId))}
+        >
           {pending ? t("sending") : t("submit")}
         </Button>
       </div>
@@ -100,6 +105,7 @@ export function CancelLoanForm({
       <ErrorText error={error} />
       <div className="flex flex-wrap gap-2">
         <Button
+          aria-busy={pending}
           type="button"
           disabled={pending}
           onClick={() => {
@@ -197,6 +203,7 @@ export function DisburseForm({
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
+              aria-busy={pending}
               type="button"
               disabled={pending}
               onClick={() =>
@@ -288,6 +295,7 @@ export function ExtendLoanForm({ loanId, maxMonths }: { loanId: string; maxMonth
       <ErrorText error={error} />
       <div className="flex flex-wrap gap-2">
         <Button
+          aria-busy={pending}
           type="button"
           disabled={pending}
           onClick={() => {

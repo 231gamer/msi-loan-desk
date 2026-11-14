@@ -156,7 +156,7 @@ function BranchForm({ branch, onDone }: { branch: BranchRow | null; onDone: () =
       <CheckboxRow id="branch-active" label={t("branches.activeLabel")} {...form.register("active")} />
       <StatusMessage status={status} />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button aria-busy={pending} type="submit" disabled={pending}>
           {pending ? t("saving") : t("save")}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>

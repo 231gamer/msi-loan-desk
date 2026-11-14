@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Banknote,
   BookOpen,
@@ -18,6 +20,9 @@ import {
   type LucideProps,
 } from "lucide-react";
 
+import { useLinkStatus } from "next/link";
+
+import { Spinner } from "@/components/ui/pending";
 import type { NavIcon as NavIconKey } from "@/lib/navigation";
 
 const ICONS = {
@@ -42,4 +47,13 @@ const ICONS = {
 export function NavIcon({ name, ...props }: { name: NavIconKey } & LucideProps) {
   const Icon = ICONS[name];
   return <Icon aria-hidden="true" strokeWidth={2} {...props} />;
+}
+
+/**
+ * A menu item's icon inside its <Link>. While the page it opens is loading, the icon turns into a
+ * spinner of the same size, so a tap or click is acknowledged at once.
+ */
+export function NavItemIcon({ name, className }: { name: NavIconKey; className?: string }) {
+  const { pending } = useLinkStatus();
+  return pending ? <Spinner className={className} /> : <NavIcon name={name} className={className} />;
 }

@@ -199,11 +199,12 @@ export function CollateralForm({ owner }: { owner: OwnerHit | null }) {
       {error !== null ? <FormMessage tone="error">{tErrors(error)}</FormMessage> : null}
       <div className="flex flex-wrap gap-2">
         {duplicates === null ? (
-          <Button type="submit" disabled={pending}>
+          <Button aria-busy={pending} type="submit" disabled={pending}>
             {pending ? t("saving") : t("submit")}
           </Button>
         ) : (
           <Button
+            aria-busy={pending}
             type="button"
             disabled={pending}
             onClick={() => void form.handleSubmit((values) => save(values, true))()}

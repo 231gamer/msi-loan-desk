@@ -60,7 +60,13 @@ export function DecisionForm({
           </p>
           <p className="text-sm">{t("confirmReason", { reason: note.trim() })}</p>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="primary" disabled={pending} onClick={() => decide("reject")}>
+            <Button
+              aria-busy={pending}
+              type="button"
+              variant="primary"
+              disabled={pending}
+              onClick={() => decide("reject")}
+            >
               {pending ? t("sending") : t("yesReject")}
             </Button>
             <Button type="button" variant="ghost" disabled={pending} onClick={() => setConfirming(false)}>
@@ -71,6 +77,7 @@ export function DecisionForm({
       ) : (
         <div className="grid gap-2 sm:grid-cols-[auto_auto_1fr] sm:items-start">
           <Button
+            aria-busy={pending}
             type="button"
             disabled={pending}
             onClick={() => {

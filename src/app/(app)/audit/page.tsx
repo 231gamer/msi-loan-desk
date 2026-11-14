@@ -14,6 +14,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import messages from "../../../../messages/en.json";
+import { LinkPending, SubmitButton } from "@/components/ui/pending";
 
 /*
  * /audit (manager, CEO, admin): read-only view of the immutable audit log (FR-26, SPEC 9 and 11).
@@ -155,10 +156,11 @@ async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit"
             <input id="audit-to" name="to" type="date" defaultValue={filters.to} className={inputClass} />
           </Field>
           <div className="flex gap-2">
-            <button type="submit" className={buttonVariants({ variant: "primary" })}>
+            <SubmitButton className={buttonVariants({ variant: "primary" })}>
               {t("filters.apply")}
-            </button>
+            </SubmitButton>
             <Link href="/audit" className={cn(buttonVariants({ variant: "ghost" }), "hover:text-ink")}>
+              <LinkPending />
               {t("filters.clear")}
             </Link>
           </div>
@@ -257,6 +259,7 @@ async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit"
                     href={pageHref(page - 1)}
                     className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                   >
+                    <LinkPending />
                     {t("previous")}
                   </Link>
                 ) : null}
@@ -265,6 +268,7 @@ async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit"
                     href={pageHref(page + 1)}
                     className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                   >
+                    <LinkPending />
                     {t("next")}
                   </Link>
                 ) : null}

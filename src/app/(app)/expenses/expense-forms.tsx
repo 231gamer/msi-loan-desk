@@ -233,7 +233,7 @@ export function ExpenseForm({
         {status?.tone === "success" ? <FormMessage tone="success">{status.text}</FormMessage> : null}
         {status?.tone === "error" ? <FormMessage tone="error">{tErrors(status.code)}</FormMessage> : null}
         <div>
-          <Button type="submit" disabled={pending}>
+          <Button aria-busy={pending} type="submit" disabled={pending}>
             {pending ? t("saving") : t("save")}
           </Button>
         </div>
@@ -289,7 +289,7 @@ export function SettleForm({
           </option>
         ))}
       </select>
-      <Button type="submit" variant="secondary" disabled={pending || account === ""}>
+      <Button aria-busy={pending} type="submit" variant="secondary" disabled={pending || account === ""}>
         {t("pay")}
       </Button>
       {error !== null ? <FormMessage tone="error">{tErrors(error)}</FormMessage> : null}

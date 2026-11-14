@@ -230,7 +230,7 @@ export function ManualJournalForm({
         ) : null}
         {status?.tone === "error" ? <FormMessage tone="error">{tErrors(status.code)}</FormMessage> : null}
         <div>
-          <Button type="submit" disabled={pending}>
+          <Button aria-busy={pending} type="submit" disabled={pending}>
             {pending ? t("submitting") : opening ? tOpening("submit") : t("submit")}
           </Button>
         </div>

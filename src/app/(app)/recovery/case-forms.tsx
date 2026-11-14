@@ -107,6 +107,7 @@ export function OpenCaseForm({ loanId }: { loanId: string }) {
       <Outcome result={result} />
       <div>
         <Button
+          aria-busy={pending}
           type="button"
           disabled={pending}
           onClick={() =>
@@ -197,6 +198,7 @@ export function StepForm({ caseId, stages }: { caseId: string; stages: readonly 
       <Outcome result={result} success={t("saved")} />
       <div>
         <Button
+          aria-busy={pending}
           type="button"
           disabled={pending}
           onClick={() => {
@@ -388,6 +390,7 @@ export function SaleForm({
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
+                  aria-busy={pending}
                   type="button"
                   disabled={pending}
                   onClick={() =>
@@ -453,6 +456,7 @@ export function SurplusForm({
         </select>
       </Field>
       <Button
+        aria-busy={pending}
         type="button"
         disabled={pending}
         onClick={() => run(() => paySurplus(caseId, loanId, surplus, method))}
@@ -505,6 +509,7 @@ export function WriteOffForm({ loanId, override }: { loanId: string; override: b
       <Outcome result={result} success={t("sent")} />
       <div>
         <Button
+          aria-busy={pending}
           type="button"
           disabled={pending}
           onClick={() => {

@@ -187,6 +187,38 @@
   }
 }
 
+/*
+ * Busy state: any button or link marked aria-busy="true" (an action in progress, a page loading)
+ * shows a small spinner before its label. The element is also disabled or ignored meanwhile.
+ */
+@layer components {
+  :is(button, a, [role="button"])[aria-busy="true"]::before {
+    content: "";
+    flex-shrink: 0;
+    width: 1em;
+    height: 1em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 9999px;
+    animation: busy-spin 0.7s linear infinite;
+  }
+
+  a[aria-busy="true"] {
+    cursor: progress;
+  }
+
+  /* An icon that the spinner replaces while busy (e.g. the sign-out arrow). */
+  [aria-busy="true"] > [data-busy-hide] {
+    display: none;
+  }
+}
+
+@keyframes busy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -195,6 +227,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The busy spinner is a progress signal, not decoration: it keeps turning, slowly. */
+  :is(button, a, [role="button"])[aria-busy="true"]::before {
+    animation-duration: 1.6s !important;
+    animation-iteration-count: infinite !important;
   }
 }
 

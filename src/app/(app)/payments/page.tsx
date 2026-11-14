@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 
 import { PAYMENT_METHODS } from "./schemas";
 import { VoidRequest } from "./void-request";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /payments (cashier, manager, accountant, CEO; SPEC 9): receipts with filters and the void request.
@@ -163,6 +164,7 @@ async function PaymentsContent({ searchParams }: PageProps<"/payments">) {
               href="/payments/new"
               className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
             >
+              <LinkPending />
               {t("new")}
             </Link>
           </div>
@@ -244,6 +246,7 @@ async function PaymentsContent({ searchParams }: PageProps<"/payments">) {
                 {t("filters.apply")}
               </button>
               <Link href="/payments" className={cn(buttonVariants({ variant: "ghost" }), "hover:text-ink")}>
+                <LinkPending />
                 {t("filters.clear")}
               </Link>
             </div>
@@ -381,6 +384,7 @@ async function PaymentsContent({ searchParams }: PageProps<"/payments">) {
                     href={href({ page: String(page - 1) })}
                     className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                   >
+                    <LinkPending />
                     {t("previous")}
                   </Link>
                 ) : null}
@@ -389,6 +393,7 @@ async function PaymentsContent({ searchParams }: PageProps<"/payments">) {
                     href={href({ page: String(page + 1) })}
                     className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                   >
+                    <LinkPending />
                     {t("next")}
                   </Link>
                 ) : null}

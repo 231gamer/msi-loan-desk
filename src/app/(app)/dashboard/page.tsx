@@ -24,6 +24,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { LoanPillText } from "../loans/loan-pill";
+import { LinkPending } from "@/components/ui/pending";
+import { Tooltip } from "@/components/ui/tooltip";
 
 /*
  * /dashboard (all staff; SPEC 9 /dashboard; FR-29; mock-up 05). One read (dashboard_data) gives
@@ -126,60 +128,106 @@ async function DashboardContent({ searchParams }: { searchParams: PageProps<"/da
   const count = (value: unknown) => num((value as Json | undefined)?.count);
   const cents = (value: unknown) => num((value as Json | undefined)?.cents);
 
+  const pillFor = (row: Json) =>
+    loanPill({
+      status: str(row.status),
+      dueDate: str(row.due_date),
+      daysOverdue: num(row.days),
+      totalOutCents: BigInt(num(row.owes_cents)),
+      closedOn: null,
+      today: today.data,
+    });
+  // Phones get one card per loan (everything visible without sideways scrolling); from md up, the table.
   const dueTable = (rows: Json[]) =>
     rows.length === 0 ? (
       <p className="px-4 pb-8 text-center text-sm text-ink-muted sm:px-6">{t("dueEmpty")}</p>
     ) : (
-      <ScrollRegion label={t("dueTable")}>
-        <table className="w-full min-w-[640px] border-collapse text-sm">
-          <thead className="bg-subtle text-left text-xs text-ink-muted">
-            <tr>
-              {(["customer", "loan", "branch", "dueDate", "owes", "status"] as const).map((column) => (
-                <th
-                  key={column}
-                  scope="col"
-                  className={cn("px-4 py-2.5 font-semibold", column === "owes" && "text-right")}
+      <>
+        <ul className="divide-y divide-page border-t border-page md:hidden" aria-label={t("dueTable")}>
+          {rows.map((row) => {
+            const pill = pillFor(row);
+            return (
+              <li key={str(row.loan_id)}>
+                <Link
+                  href={`/loans/${str(row.loan_id)}`}
+                  className="grid min-h-11 gap-1 px-4 py-3 text-ink hover:bg-page hover:text-ink"
                 >
-                  {t(`columns.${column}`)}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const pill = loanPill({
-                status: str(row.status),
-                dueDate: str(row.due_date),
-                daysOverdue: num(row.days),
-                totalOutCents: BigInt(num(row.owes_cents)),
-                closedOn: null,
-                today: today.data,
-              });
-              return (
-                <tr key={str(row.loan_id)} className="border-t border-page">
-                  <td className="px-4 py-3">{str(row.borrower)}</td>
-                  <td className="tabular px-4 py-3">
-                    <Link href={`/loans/${str(row.loan_id)}`}>{str(row.loan_no)}</Link>
-                  </td>
-                  <td className="px-4 py-3">{str(row.branch)}</td>
-                  <td className="tabular px-4 py-3">{formatDate(str(row.due_date))}</td>
-                  <td className="tabular px-4 py-3 text-right">{formatMoney(num(row.owes_cents))}</td>
-                  <td className="px-4 py-3">
-                    <StatusBadge tone={pill.tone}>
-                      <LoanPillText pill={pill} />
-                    </StatusBadge>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </ScrollRegion>
+                  <span className="flex items-start justify-between gap-3">
+                    <span className="font-semibold">{str(row.borrower)}</span>
+                    <span className="tabular font-bold whitespace-nowrap">
+                      {formatMoney(num(row.owes_cents))}
+                    </span>
+                  </span>
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="tabular text-sm text-ink-muted">
+                      <span className="whitespace-nowrap">{str(row.loan_no)}</span> · {str(row.branch)} ·{" "}
+                      <span className="whitespace-nowrap">
+                        {t("dueOn", { date: formatDate(str(row.due_date)) })}
+                      </span>
+                    </span>
+                    <span className="shrink-0">
+                      <StatusBadge tone={pill.tone}>
+                        <LoanPillText pill={pill} />
+                      </StatusBadge>
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+        <ScrollRegion label={t("dueTable")} className="hidden md:block">
+          <table className="w-full min-w-[640px] border-collapse text-sm">
+            <thead className="bg-subtle text-left text-xs text-ink-muted">
+              <tr>
+                {(["customer", "loan", "branch", "dueDate", "owes", "status"] as const).map((column) => (
+                  <th
+                    key={column}
+                    scope="col"
+                    className={cn("px-4 py-2.5 font-semibold", column === "owes" && "text-right")}
+                  >
+                    {t(`columns.${column}`)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                const pill = pillFor(row);
+                return (
+                  <tr key={str(row.loan_id)} className="border-t border-page">
+                    <td className="px-4 py-3">{str(row.borrower)}</td>
+                    <td className="tabular px-4 py-3 whitespace-nowrap">
+                      <Link href={`/loans/${str(row.loan_id)}`}>{str(row.loan_no)}</Link>
+                    </td>
+                    <td className="px-4 py-3">{str(row.branch)}</td>
+                    <td className="tabular px-4 py-3 whitespace-nowrap">{formatDate(str(row.due_date))}</td>
+                    <td className="tabular px-4 py-3 text-right whitespace-nowrap">
+                      {formatMoney(num(row.owes_cents))}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <StatusBadge tone={pill.tone}>
+                        <LoanPillText pill={pill} />
+                      </StatusBadge>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </ScrollRegion>
+      </>
     );
   const openList = (
-    <Link href="/due" className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}>
-      {t("openList")}
-    </Link>
+    <Tooltip content={t("tips.openList")} align="end">
+      <Link
+        href="/due"
+        className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
+      >
+        <LinkPending />
+        {t("openList")}
+      </Link>
+    </Tooltip>
   );
 
   const attention = (items: Json[]) => (
@@ -303,18 +351,33 @@ async function DashboardContent({ searchParams }: { searchParams: PageProps<"/da
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link
-            href="/payments/new"
-            className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
-          >
-            {t("cashier.receive")}
-          </Link>
-          <Link href="/remittance" className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}>
-            {t("cashier.confirmField")}
-          </Link>
-          <Link href="/day-close" className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}>
-            {t("cashier.closeDay")}
-          </Link>
+          <Tooltip content={t("tips.receive")}>
+            <Link
+              href="/payments/new"
+              className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
+            >
+              <LinkPending />
+              {t("cashier.receive")}
+            </Link>
+          </Tooltip>
+          <Tooltip content={t("tips.confirmField")}>
+            <Link
+              href="/remittance"
+              className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}
+            >
+              <LinkPending />
+              {t("cashier.confirmField")}
+            </Link>
+          </Tooltip>
+          <Tooltip content={t("tips.closeDay")}>
+            <Link
+              href="/day-close"
+              className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}
+            >
+              <LinkPending />
+              {t("cashier.closeDay")}
+            </Link>
+          </Tooltip>
         </div>
         {data.yesterday_closed === false ? (
           <Callout tone="warning">{t("cashier.yesterdayOpen")}</Callout>
