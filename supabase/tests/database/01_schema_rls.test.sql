@@ -56,7 +56,7 @@ select set_eq(
         'open_recovery_case', 'advance_recovery_stage', 'record_collateral_sale', 'loan_surplus_cents', 'pay_surplus',
         'request_write_off', 'loan_statement', 'verify_document', 'save_payee', 'create_expense', 'settle_expense', 'day_close_summary', 'submit_day_close', 'reopen_day_close', 'report_collections', 'report_money_out', 'report_overdue', 'report_profit_loss', 'report_balance_sheet', 'report_trial_balance', 'report_cash_position', 'import_opening_balance', 'dashboard_data', 'health_check',
         'my_account', 'admin_require_password_change', 'admin_require_password_change_all', 'complete_password_change',
-        'loan_installment_rows', 'loan_schedule_rows', 'receipt_next_installment'],
+        'loan_installment_rows', 'loan_schedule_rows', 'receipt_next_installment', 'loan_document_schedule'],
   'clients can call exactly the released RPCs and helpers');
 
 -- A signed-in cashier trying a direct insert is refused (the T-30 pattern, on an M0 table).

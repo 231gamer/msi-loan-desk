@@ -23,7 +23,7 @@ import { SubmitButton } from "@/components/ui/pending";
  * in recovery are counted but listed on the recovery screen (M6). Managers and the admin can run
  * the daily job by hand (D-11). CSV export comes with the report pack (M8).
  */
-const TABS = ["all", "overdue", "today", "soon"] as const;
+const TABS = ["all", "overdue", "behind", "today", "soon"] as const;
 type Tab = (typeof TABS)[number];
 const uuid = /^[0-9a-f-]{36}$/;
 type Params = Awaited<PageProps<"/due">["searchParams"]>;
@@ -33,6 +33,7 @@ function single(value: Params[string]): string {
 const inTab = (tab: Tab, bucket: string) =>
   tab === "all" ||
   (tab === "overdue" && bucket.startsWith("overdue")) ||
+  (tab === "behind" && bucket === "behind") ||
   (tab === "today" && bucket === "due_today") ||
   (tab === "soon" && bucket === "due_7d");
 
@@ -112,11 +113,13 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
     const matching = rows.filter((row) => bucket(row.bucket ?? ""));
     return {
       count: matching.length,
-      cents: matching.reduce((total, row) => total + BigInt(row.total_out ?? 0), 0n),
+      // What to collect now: the whole balance, or the installment due for installment loans.
+      cents: matching.reduce((total, row) => total + BigInt(row.amount_due_cents ?? row.total_out ?? 0), 0n),
     };
   };
   const cards = [
     { key: "overdue", ...sum((bucket) => bucket.startsWith("overdue")) },
+    { key: "behind", ...sum((bucket) => bucket === "behind") },
     { key: "today", ...sum((bucket) => bucket === "due_today") },
     { key: "soon", ...sum((bucket) => bucket === "due_7d") },
     {
@@ -137,12 +140,14 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
     const text = search.toString();
     return text === "" ? "/due" : `/due?${text}`;
   };
-  const pill = (days: number): { tone: BadgeTone; text: string } =>
-    days > 0
-      ? { tone: "overdue", text: t("pill.overdue", { count: days }) }
-      : days === 0
-        ? { tone: "due", text: t("pill.today") }
-        : { tone: "due", text: t("pill.in", { count: -days }) };
+  const pill = (days: number, bucket: string | null): { tone: BadgeTone; text: string } =>
+    bucket === "behind"
+      ? { tone: "due", text: t("pill.behind", { count: days }) }
+      : days > 0
+        ? { tone: "overdue", text: t("pill.overdue", { count: days }) }
+        : days === 0
+          ? { tone: "due", text: t("pill.today") }
+          : { tone: "due", text: t("pill.in", { count: -days }) };
   const nextPenalty = (row: (typeof rows)[number]) =>
     row.next_penalty_on === null
       ? "–"
@@ -181,7 +186,7 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
           {cards.map((card) => (
             <section
               key={card.key}
@@ -262,7 +267,7 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
               <ul className="divide-y divide-page md:hidden print:hidden">
                 {shown.map((row) => {
                   const name = row.loan === undefined ? "" : customerName(row.loan.customers);
-                  const status = pill(row.days ?? 0);
+                  const status = pill(row.days ?? 0, row.bucket);
                   return (
                     <li key={row.loan_id} className="grid gap-2 px-4 py-3">
                       <Link href={`/loans/${row.loan_id}`} className="grid gap-1 text-ink hover:text-ink">
@@ -271,8 +276,14 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
                           <StatusBadge tone={status.tone}>{status.text}</StatusBadge>
                         </span>
                         <span className="tabular text-sm text-ink-muted">
-                          {row.loan?.loan_no} · {t("dueOn", { date: formatDate(row.due_date ?? "") })} ·{" "}
-                          {t("owes", { amount: formatMoney(row.total_out ?? 0) })}
+                          {row.loan?.loan_no} ·{" "}
+                          {row.installment_no === null
+                            ? t("dueOn", { date: formatDate(row.due_date ?? "") })
+                            : t("installmentDueOn", {
+                                number: row.installment_no,
+                                date: formatDate(row.due_date ?? ""),
+                              })}{" "}
+                          · {t("owes", { amount: formatMoney(row.amount_due_cents ?? row.total_out ?? 0) })}
                         </span>
                       </Link>
                       {actions(row, name, row.loan?.customers.phone ?? "")}
@@ -319,7 +330,7 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
                   <tbody>
                     {shown.map((row) => {
                       const name = row.loan === undefined ? "" : customerName(row.loan.customers);
-                      const status = pill(row.days ?? 0);
+                      const status = pill(row.days ?? 0, row.bucket);
                       return (
                         <tr key={row.loan_id} className="border-t border-page">
                           <td className="tabular px-4 py-3 whitespace-nowrap">
@@ -342,7 +353,15 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
                             {formatMoney(row.penalty_out ?? 0)}
                           </td>
                           <td className="tabular px-4 py-3 text-right font-semibold">
-                            {formatMoney(row.total_out ?? 0)}
+                            {formatMoney(row.amount_due_cents ?? row.total_out ?? 0)}
+                            {row.installment_no === null ? null : (
+                              <span className="block text-xs font-normal text-ink-muted">
+                                {t("installmentOf", {
+                                  number: row.installment_no,
+                                  total: formatMoney(row.total_out ?? 0),
+                                })}
+                              </span>
+                            )}
                           </td>
                           <td className="tabular px-4 py-3 whitespace-nowrap">{nextPenalty(row)}</td>
                           <td className="px-4 py-3 print:hidden">
@@ -357,8 +376,8 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
             </>
           )}
         </section>
-        {cards[3].count > 0 ? (
-          <p className="text-sm text-ink-muted">{t("recoveryNote", { count: cards[3].count })}</p>
+        {cards[4].count > 0 ? (
+          <p className="text-sm text-ink-muted">{t("recoveryNote", { count: cards[4].count })}</p>
         ) : null}
 
         {runs ? (

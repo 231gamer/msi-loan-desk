@@ -247,7 +247,11 @@ export async function buildReport(key: ReportKey, params: ReportParams): Promise
     }
     case "due": {
       const [{ data: due, error }, { data: loans }] = await Promise.all([
-        supabase.from("due_list").select("*").in("bucket", ["due_today", "due_7d"]).order("due_date"),
+        supabase
+          .from("due_list")
+          .select("*")
+          .in("bucket", ["due_today", "due_7d", "behind"])
+          .order("due_date"),
         supabase
           .from("loans")
           .select(
@@ -259,17 +263,22 @@ export async function buildReport(key: ReportKey, params: ReportParams): Promise
       const rows = (due ?? [])
         .map((row) => ({ row, loan: byId.get(row.loan_id ?? "") }))
         .filter(({ loan }) => loan !== undefined && (branch === null || loan.branch_id === branch));
-      const section = (bucket: "due_today" | "due_7d"): Section => {
+      // Installment loans inside their term are listed by the installment due (amount_due_cents) and,
+      // when an installment is unpaid, under "Behind schedule"; one-payment loans by what they owe.
+      const sections = { due_today: "dueToday", due_7d: "dueSoon", behind: "behind" } as const;
+      const section = (bucket: keyof typeof sections): Section => {
         const list = rows.filter(({ row }) => row.bucket === bucket);
+        const due = (row: (typeof list)[number]["row"]) => num(row.amount_due_cents ?? row.total_out);
         return {
           id: bucket,
-          heading: t(`sections.${bucket === "due_today" ? "dueToday" : "dueSoon"}`),
+          heading: t(`sections.${sections[bucket]}`),
           columns: [
             col("dueDate", "date"),
             col("loan"),
             col("borrower"),
             col("phone"),
             col("branch"),
+            col("installment"),
             col("owes", "money"),
           ],
           rows: list.map(({ row, loan }) => ({
@@ -278,11 +287,12 @@ export async function buildReport(key: ReportKey, params: ReportParams): Promise
             borrower: loan === undefined ? "" : customerName(loan.customers),
             phone: text(loan?.customers.phone),
             branch: text(loan?.branches.name),
-            owes: num(row.total_out),
+            installment: row.installment_no === null ? "–" : String(row.installment_no),
+            owes: due(row),
           })),
           total: {
             dueDate: t("total"),
-            owes: list.reduce((sum, { row }) => sum + BigInt(num(row.total_out)), 0n).toString(),
+            owes: list.reduce((sum, { row }) => sum + BigInt(due(row)), 0n).toString(),
           },
           empty: t("empty"),
         };
@@ -292,7 +302,7 @@ export async function buildReport(key: ReportKey, params: ReportParams): Promise
         title,
         subtitle: `${t("asAt", { date: formatDate(params.to) })} · ${branchName}`,
         cards: [],
-        sections: [section("due_today"), section("due_7d")],
+        sections: [section("due_today"), section("due_7d"), section("behind")],
       };
     }
     case "overdue": {

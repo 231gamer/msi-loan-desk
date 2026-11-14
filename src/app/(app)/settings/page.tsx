@@ -108,6 +108,8 @@ async function CompanyTab() {
       templates={{
         reminder: typeof templates.reminder === "string" ? templates.reminder : "",
         reminderOverdue: typeof templates.reminder_overdue === "string" ? templates.reminder_overdue : "",
+        reminderInstallment:
+          typeof templates.reminder_installment === "string" ? templates.reminder_installment : "",
       }}
     />
   );

@@ -325,7 +325,8 @@
       "templatesHeading": "WhatsApp reminder texts",
       "templatesIntro": "Placeholders in braces are filled in for each loan: {placeholders}.",
       "reminder": "Reminder before or on the due date",
-      "reminderOverdue": "Reminder for overdue loans"
+      "reminderOverdue": "Reminder for overdue loans",
+      "reminderInstallment": "Reminder for an installment (installment loans)"
     },
     "branches": {
       "heading": "Branches",
@@ -1441,7 +1442,15 @@
       "signCompany": "For {company}",
       "dateLine": "Signed at ______________________ on ____ / ____ / ________",
       "preparedBy": "Prepared by {name}",
-      "verify": "Check that this document is genuine by scanning the code or visiting:"
+      "verify": "Check that this document is genuine by scanning the code or visiting:",
+      "rateOnce": "{rate} charged once",
+      "termInstallments": "{months} monthly installments",
+      "schedule": "Repayment schedule",
+      "scheduleNote": "Installments are due on the dates shown (counted from the payout day). Payments cover the oldest unpaid installment first. No penalty or extra interest is charged within the term; penalties apply only to what is still owed after the final due date.",
+      "installmentNo": "Installment",
+      "installmentDue": "Due date",
+      "installmentAmount": "Amount",
+      "monthsAfterPayout": "{count, plural, one {# month after payout} other {# months after payout}}"
     },
     "common": {
       "preparedBy": "Prepared by {name}",
@@ -1483,6 +1492,22 @@
         "extension": "Extension fee",
         "sale": "Collateral sale",
         "writeOff": "Written off"
+      },
+      "scheduleHeading": "Repayment schedule, {loan} (status today)",
+      "scheduleColumns": {
+        "no": "No.",
+        "due": "Due date",
+        "amount": "Amount",
+        "paid": "Paid",
+        "owed": "Still owed",
+        "status": "Status"
+      },
+      "installmentStatus": {
+        "paid": "Paid",
+        "part_paid": "Part paid",
+        "due": "Due",
+        "behind": "Behind",
+        "not_due": "Not yet due"
       }
     },
     "notice": {
@@ -1633,7 +1658,10 @@
       "fieldSubmit": "Save payment and issue receipt",
       "fieldHandover": "The borrower gets a receipt now. The cash shows as \"with you\" until the cashier confirms the handover.",
       "chequeNumber": "Cheque number (required)",
-      "referenceHelpCheque": "The number printed on the cheque. The money goes to the bank account."
+      "referenceHelpCheque": "The number printed on the cheque. The money goes to the bank account.",
+      "suggestionNext": "Next installment ({number}) due {date}",
+      "suggestionBehind": "Due now, behind since {date} (installment {number})",
+      "useSuggestion": "Use this amount"
     },
     "validation": {
       "amount": "Enter an amount more than zero, with at most 2 decimals.",
@@ -1671,6 +1699,8 @@
       "principal": "Applied to amount lent"
     },
     "balanceAfter": "Balance after payment",
+    "nextInstallment": "Next installment",
+    "nextInstallmentValue": "{amount} due {date}",
     "receivedBy": "Received by",
     "inField": "Collected in the field",
     "printed": "Printed {when}",
@@ -1696,10 +1726,11 @@
     "loans": "{count, plural, one {# loan} other {# loans}}",
     "outstanding": "Outstanding",
     "visitsHeading": "Loans due today or overdue",
-    "empty": "Nothing due today. Loans you look after appear here on their due date.",
+    "empty": "Nothing due today. Loans you look after appear here on their due date, and installment loans when an installment is due.",
     "lent": "{amount} lent",
     "owes": "Owes",
     "owesWithPenalty": "Owes (incl. {penalty} penalty)",
+    "installmentDue": "Installment {number} due now (loan owes {total})",
     "call": "Call",
     "callLabel": "Call {name}",
     "collect": "Collect",
@@ -1738,6 +1769,7 @@
     "loans": "{count, plural, one {# loan} other {# loans}}",
     "cards": {
       "overdue": "Overdue",
+      "behind": "Behind schedule",
       "today": "Due today",
       "soon": "Due in {days} days",
       "recovery": "In recovery"
@@ -1746,6 +1778,7 @@
     "tabs": {
       "all": "All",
       "overdue": "Overdue",
+      "behind": "Behind schedule",
       "today": "Due today",
       "soon": "Due in {days} days"
     },
@@ -1773,11 +1806,14 @@
     },
     "pill": {
       "overdue": "{count, plural, one {# day overdue} other {# days overdue}}",
+      "behind": "{count, plural, =0 {Behind} one {# day behind} other {# days behind}}",
       "today": "Due today",
       "in": "{count, plural, one {In # day} other {In # days}}"
     },
     "lastPenalty": "{date} (last)",
     "dueOn": "due {date}",
+    "installmentDueOn": "installment {number} due {date}",
+    "installmentOf": "installment {number}, of {total} owed",
     "owes": "owes {amount}",
     "call": "Call",
     "callLabel": "Call {name}",
@@ -2423,7 +2459,8 @@
       "accounts": "Accounts",
       "cashAccounts": "Cash, bank and mobile money",
       "fieldCash": "Field cash with officers",
-      "items": "Items"
+      "items": "Items",
+      "behind": "Behind schedule (installment loans, within their term)"
     },
     "columns": {
       "method": "Method",
@@ -2461,7 +2498,8 @@
       "item": "Item",
       "owner": "Owner",
       "status": "Status",
-      "location": "Location"
+      "location": "Location",
+      "installment": "Installment"
     },
     "methods": {
       "cash": "Cash",

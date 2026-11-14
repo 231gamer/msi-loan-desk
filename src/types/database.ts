@@ -2533,6 +2533,14 @@ export type Database = {
           total_out: number;
         }[];
       };
+      loan_document_schedule: {
+        Args: { p_loan_id: string };
+        Returns: {
+          amount_cents: number;
+          due_date: string;
+          installment_no: number;
+        }[];
+      };
       loan_installment_rows: {
         Args: { p_loan_id: string };
         Returns: {

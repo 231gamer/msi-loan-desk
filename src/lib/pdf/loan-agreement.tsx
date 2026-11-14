@@ -29,6 +29,11 @@ export type AgreementLabels = Record<
   | "product"
   | "purpose"
   | "terms"
+  | "schedule"
+  | "scheduleNote"
+  | "installmentNo"
+  | "installmentDue"
+  | "installmentAmount"
   | "collateral"
   | "item"
   | "description"
@@ -67,6 +72,8 @@ export interface AgreementData {
   };
   borrower: { name: string; code: string; id: string; phone: string; address: string };
   terms: string;
+  /** Installment loans: the repayment schedule (dates empty until the loan is paid out). */
+  schedule: Array<{ no: string; dueDate: string; amount: string }> | null;
   collateral: Array<{ code: string; description: string; identifier: string; value: string }>;
   guarantors: Array<{ name: string; relationship: string; phone: string; id: string }>;
   labels: AgreementLabels;
@@ -172,6 +179,31 @@ function Agreement({ data }: { data: AgreementData }) {
             {data.loan.purpose !== "" ? <Detail label={l.purpose} value={data.loan.purpose} /> : null}
           </View>
         </View>
+
+        {data.schedule === null ? null : (
+          <View style={styles.section} wrap={false}>
+            <Text style={styles.heading}>{l.schedule}</Text>
+            <View style={styles.table}>
+              <View style={styles.row}>
+                <Text style={[styles.th, { width: "20%" }]}>{l.installmentNo}</Text>
+                <Text style={[styles.th, { width: "45%" }]}>{l.installmentDue}</Text>
+                <Text style={[styles.th, { width: "35%", textAlign: "right" }]}>{l.installmentAmount}</Text>
+              </View>
+              {data.schedule.map((line) => (
+                <View key={line.no} style={styles.row}>
+                  <Text style={{ width: "20%" }}>{line.no}</Text>
+                  <Text style={{ width: "45%" }}>{line.dueDate}</Text>
+                  <Text style={{ width: "35%", textAlign: "right" }}>{line.amount}</Text>
+                </View>
+              ))}
+              <View style={styles.row}>
+                <Text style={[styles.th, { width: "65%" }]}>{l.total}</Text>
+                <Text style={[styles.th, { width: "35%", textAlign: "right" }]}>{data.loan.total}</Text>
+              </View>
+            </View>
+            <Text style={styles.muted}>{l.scheduleNote}</Text>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.heading}>{l.terms}</Text>

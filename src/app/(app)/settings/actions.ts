@@ -161,7 +161,12 @@ export async function saveTemplates(values: TemplatesValues): Promise<ActionResu
   const base = existing !== null && typeof existing === "object" && !Array.isArray(existing) ? existing : {};
   const code = await updateSetting(
     "templates",
-    { ...base, reminder: parsed.data.reminder, reminder_overdue: parsed.data.reminderOverdue },
+    {
+      ...base,
+      reminder: parsed.data.reminder,
+      reminder_overdue: parsed.data.reminderOverdue,
+      reminder_installment: parsed.data.reminderInstallment,
+    },
     "settings.saveTemplates",
     admin.userId,
   );

@@ -28,6 +28,7 @@ export type CompanyValues = z.infer<typeof companySchema>;
 export const templatesSchema = z.object({
   reminder: required(2000),
   reminderOverdue: required(2000),
+  reminderInstallment: required(2000),
 });
 export type TemplatesValues = z.infer<typeof templatesSchema>;
 

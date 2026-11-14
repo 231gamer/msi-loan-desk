@@ -14,6 +14,7 @@ import { loanPill } from "@/lib/loans";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 import { LoanPillText } from "../../../loans/loan-pill";
+import { installmentSuggestion } from "../../../payments/installment-suggestion";
 import { PaymentForm } from "../../../payments/payment-form";
 
 /*
@@ -48,6 +49,7 @@ async function CollectContent({ params }: PageProps<"/field/collect/[loanId]">) 
     supabase.from("settings").select("value").eq("key", "field.require_remittance").maybeSingle(),
   ]);
   if (loan === null || today === null) notFound();
+  const suggestion = await installmentSuggestion(supabase, loan.id);
   const open = ["active", "overdue", "recovery"].includes(loan.status);
   const ownBranch = staff.branch !== null && staff.branch.id === loan.branch_id;
   const owed = preview.error === null ? (preview.data as { owed: { total: number } }).owed.total : 0;
@@ -97,6 +99,7 @@ async function CollectContent({ params }: PageProps<"/field/collect/[loanId]">) 
             loanId={loan.id}
             variant="field"
             handoverNote={setting?.value !== false}
+            suggestion={suggestion}
             initial={{
               ok: true,
               owed: {

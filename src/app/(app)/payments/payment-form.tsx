@@ -9,12 +9,14 @@ import { useForm, useWatch } from "react-hook-form";
 import { Field, FormMessage, describedBy, inputClass } from "@/components/forms/fields";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
-import { formatMoney } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
+import { centsToInput } from "@/lib/money-input";
 import type { ErrorCode } from "@/lib/rpc-errors";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@/lib/zod-resolver";
 
 import { previewPayment, receivePayment, recordFieldPayment, type PreviewResult } from "./actions";
+import type { InstallmentSuggestion } from "./installment-suggestion";
 import { FIELD_METHODS, PAYMENT_METHODS, paymentSchema, type PaymentValues } from "./schemas";
 import { LinkPending } from "@/components/ui/pending";
 
@@ -33,6 +35,7 @@ export function PaymentForm({
   cancelHref,
   todayLabel,
   handoverNote = false,
+  suggestion,
 }: {
   loanId: string;
   initial: Preview;
@@ -40,6 +43,8 @@ export function PaymentForm({
   cancelHref?: string;
   todayLabel?: string;
   handoverNote?: boolean;
+  /** Installment loans: the installment due, offered as the amount (any amount may still be typed). */
+  suggestion?: InstallmentSuggestion | null;
 }) {
   const field = variant === "field";
   const t = useTranslations("payments.receive");
@@ -133,6 +138,33 @@ export function PaymentForm({
           </Field>
         ) : null}
       </div>
+
+      {suggestion !== undefined && suggestion !== null ? (
+        <div
+          className="flex flex-wrap items-center justify-between gap-2 rounded-control bg-primary-tint/60 px-3 py-2 text-sm text-ink"
+          data-testid="installment-suggestion"
+        >
+          <span className="tabular">
+            {t(suggestion.behind ? "suggestionBehind" : "suggestionNext", {
+              number: suggestion.installmentNo,
+              date: formatDate(suggestion.dueDate),
+            })}
+            : <strong>{formatMoney(suggestion.amountCents)}</strong>
+          </span>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              const value = centsToInput(suggestion.amountCents);
+              form.setValue("amount", value, { shouldValidate: true });
+              askPreview(value);
+            }}
+          >
+            {t("useSuggestion")}
+          </Button>
+        </div>
+      ) : null}
 
       <fieldset className="grid gap-1.5">
         <legend className="mb-1.5 text-xs font-semibold text-ink-muted">
