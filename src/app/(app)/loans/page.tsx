@@ -286,8 +286,14 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
                           </StatusBadge>
                         </span>
                         <span className="tabular text-sm text-ink-muted">
-                          {row.loan_no} · {t("lent", { amount: formatMoney(row.principal_cents) })} ·{" "}
-                          {t("owes", { amount: formatMoney(balance?.total_out ?? 0) })}
+                          {row.loan_no} ·{" "}
+                          <span className="whitespace-nowrap">
+                            {t("lent", { amount: formatMoney(row.principal_cents) })}
+                          </span>{" "}
+                          ·{" "}
+                          <span className="whitespace-nowrap">
+                            {t("owes", { amount: formatMoney(balance?.total_out ?? 0) })}
+                          </span>
                         </span>
                       </Link>
                     </li>

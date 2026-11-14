@@ -64,6 +64,7 @@ type ServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
 async function recordNames(
   supabase: ServerClient,
   rows: readonly { entity_type: string; entity_id: string | null }[],
+  labels: { approval: (type: string) => string; document: (kind: string) => string },
 ): Promise<Map<string, string>> {
   const ids = (type: string) => [
     ...new Set(
@@ -82,6 +83,8 @@ async function recordNames(
     { type: "journal", ids: ids("journal") },
     { type: "loan_product", ids: ids("loan_product") },
     { type: "payee", ids: ids("payee") },
+    { type: "approval_request", ids: ids("approval_request") },
+    { type: "issued_document", ids: ids("issued_document") },
   ].filter((lookup) => lookup.ids.length > 0);
 
   const read = async (type: string, list: string[]): Promise<[string, string][]> => {
@@ -125,6 +128,14 @@ async function recordNames(
         const { data } = await supabase.from("payees").select("id, name").in("id", list);
         return (data ?? []).map((row) => [row.id, row.name]);
       }
+      case "approval_request": {
+        const { data } = await supabase.from("approval_requests").select("id, type").in("id", list);
+        return (data ?? []).map((row) => [row.id, labels.approval(row.type)]);
+      }
+      case "issued_document": {
+        const { data } = await supabase.from("issued_documents").select("id, kind").in("id", list);
+        return (data ?? []).map((row) => [row.id, labels.document(row.kind)]);
+      }
       default:
         return [];
     }
@@ -165,9 +176,11 @@ export default async function AuditPage({ searchParams }: PageProps<"/audit">) {
 
 async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit">["searchParams"] }) {
   const staff = await requirePageAccess("/audit");
-  const [t, tRoles, params] = await Promise.all([
+  const [t, tRoles, tApprovals, tVerify, params] = await Promise.all([
     getTranslations("audit"),
     getTranslations("roles"),
+    getTranslations("approvals"),
+    getTranslations("verify"),
     searchParams,
   ]);
 
@@ -204,7 +217,16 @@ async function AuditContent({ searchParams }: { searchParams: PageProps<"/audit"
   const total = count ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const records = await recordNames(supabase, rows);
+  const records = await recordNames(supabase, rows, {
+    approval: (type) =>
+      type in messages.approvals.types
+        ? tApprovals(`types.${type as keyof typeof messages.approvals.types}`)
+        : humanize(type),
+    document: (kind) =>
+      kind in messages.verify.kinds
+        ? tVerify(`kinds.${kind as keyof typeof messages.verify.kinds}`)
+        : humanize(kind),
+  });
 
   // Message keys cannot contain dots (next-intl nests on them), so "setting.updated" is "setting_updated".
   const actionLabel = (action: string) => {
