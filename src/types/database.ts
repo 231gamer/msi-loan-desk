@@ -2144,13 +2144,16 @@ export type Database = {
       };
       due_list: {
         Row: {
+          amount_due_cents: number | null;
           bucket: string | null;
           days: number | null;
           due_date: string | null;
+          installment_no: number | null;
           last_penalty: boolean | null;
           loan_id: string | null;
           next_penalty_on: string | null;
           penalty_out: number | null;
+          repayment_type: string | null;
           total_out: number | null;
         };
         ComputedFields: never;
@@ -2166,6 +2169,26 @@ export type Database = {
           penalty_out: number | null;
           principal_out: number | null;
           total_out: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      loan_schedule_status: {
+        Row: {
+          arrears_cents: number | null;
+          behind_count: number | null;
+          behind_since: string | null;
+          days_behind: number | null;
+          due_now_cents: number | null;
+          in_term: boolean | null;
+          installments: number | null;
+          loan_id: string | null;
+          next_due_date: string | null;
+          next_no: number | null;
+          next_owed_cents: number | null;
+          not_due_count: number | null;
+          paid_count: number | null;
+          part_paid_count: number | null;
         };
         ComputedFields: never;
         Relationships: [];
@@ -2356,13 +2379,16 @@ export type Database = {
       due_list_rows: {
         Args: Record<PropertyKey, never>;
         Returns: {
+          amount_due_cents: number;
           bucket: string;
           days: number;
           due_date: string;
+          installment_no: number;
           last_penalty: boolean;
           loan_id: string;
           next_penalty_on: string;
           penalty_out: number;
+          repayment_type: string;
           total_out: number;
         }[];
       };
@@ -2435,6 +2461,18 @@ export type Database = {
       health_check: { Args: Record<PropertyKey, never>; Returns: Json };
       id_number_key: { Args: { p_id: string }; Returns: string };
       import_opening_balance: { Args: { p_entry: Json }; Returns: Json };
+      installment_coverage: {
+        Args: { p_loan_id: string; p_paid_cents: number; p_today: string };
+        Returns: {
+          amount_cents: number;
+          due_date: string;
+          installment_no: number;
+          owed_cents: number;
+          paid_cents: number;
+          status: string;
+        }[];
+      };
+      installment_paid_cents: { Args: { p_chain_no?: number; p_loan_id: string }; Returns: number };
       installment_schedule: {
         Args: { p_count: number; p_start: string; p_total_cents: number };
         Returns: {
@@ -2495,6 +2533,17 @@ export type Database = {
           total_out: number;
         }[];
       };
+      loan_installment_rows: {
+        Args: { p_loan_id: string };
+        Returns: {
+          amount_cents: number;
+          due_date: string;
+          installment_no: number;
+          owed_cents: number;
+          paid_cents: number;
+          status: string;
+        }[];
+      };
       loan_interest: {
         Args: { p_basis: string; p_principal_cents: number; p_rate_bps: number; p_term_months: number };
         Returns: number;
@@ -2507,6 +2556,25 @@ export type Database = {
           interest_cents: number;
           penalty_cents: number;
           principal_cents: number;
+        }[];
+      };
+      loan_schedule_rows: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          arrears_cents: number;
+          behind_count: number;
+          behind_since: string;
+          days_behind: number;
+          due_now_cents: number;
+          in_term: boolean;
+          installments: number;
+          loan_id: string;
+          next_due_date: string;
+          next_no: number;
+          next_owed_cents: number;
+          not_due_count: number;
+          paid_count: number;
+          part_paid_count: number;
         }[];
       };
       loan_statement: { Args: { p_from?: string; p_loan_id: string; p_to?: string }; Returns: Json };
@@ -2582,6 +2650,7 @@ export type Database = {
       public_branding: { Args: Record<PropertyKey, never>; Returns: Json };
       receipt_balance_after: { Args: { p_payment_id: string }; Returns: number };
       receipt_facts: { Args: { p_payment_id: string }; Returns: Json };
+      receipt_next_installment: { Args: { p_payment_id: string }; Returns: Json };
       receive_payment: {
         Args: {
           p_amount_cents: number;

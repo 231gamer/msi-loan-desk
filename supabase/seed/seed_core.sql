@@ -39,6 +39,7 @@ values
   ('templates', jsonb_build_object(
       'reminder', 'Dear {name}, your loan {loan_no} of {amount} is due on {due_date}. Outstanding: {outstanding}. Please pay at {branch} or call {branch_phone}. Thank you. – {company}',
       'reminder_overdue', 'Dear {name}, your loan {loan_no} was due on {due_date} and is {days_overdue} days overdue. Outstanding: {outstanding}, including penalties of {penalties}. Please pay at {branch} or call {branch_phone}. Thank you. – {company}',
+      'reminder_installment', 'Dear {name}, installment {installment} of your loan {loan_no} is {amount}, due on {due_date}. Outstanding on the loan: {outstanding}. Please pay at {branch} or call {branch_phone}. Thank you. – {company}',
       -- SPEC 10.1: standard wording accepted by MSI (2026-11-09); an admin can change it in Settings.
       'demand_notice', 'Our records show that loan {loan_no} was due for repayment on {due_date} and is now {days_overdue} days overdue. The total amount now owed is {outstanding}, including penalties of {penalties}.
 You are hereby required to pay the full amount at {branch} on or before {deadline}.
