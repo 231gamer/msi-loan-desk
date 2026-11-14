@@ -403,6 +403,8 @@ export async function saveProduct(values: ProductValues): Promise<ActionResult<{
       ...(parsed.data.id === undefined ? {} : { id: parsed.data.id }),
       name: parsed.data.name,
       interest_rate_bps: interest,
+      repayment_type: parsed.data.repaymentType,
+      min_term_months: Number.parseInt(parsed.data.minTermMonths, 10),
       default_term_months: Number.parseInt(parsed.data.defaultTermMonths, 10),
       max_term_months: Number.parseInt(parsed.data.maxTermMonths, 10),
       penalty_rate_bps: penalty,

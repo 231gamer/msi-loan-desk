@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { branchSchema, companySchema, newUserSchema, rulesSchema } from "./schemas";
+import { branchSchema, companySchema, newUserSchema, productSchema, rulesSchema } from "./schemas";
 
 const RULES = {
   loanManagerLimit: "2,000.00",
@@ -93,5 +93,42 @@ describe("companySchema", () => {
     expect(companySchema.safeParse(company).success).toBe(true);
     expect(companySchema.safeParse({ ...company, name: "  " }).success).toBe(false);
     expect(companySchema.safeParse({ ...company, email: "not-an-email" }).success).toBe(false);
+  });
+});
+
+describe("productSchema (installment loans)", () => {
+  const PRODUCT = {
+    name: "Installment loan (monthly)",
+    interestRate: "20",
+    repaymentType: "installments",
+    minTermMonths: "2",
+    defaultTermMonths: "3",
+    maxTermMonths: "6",
+    penaltyRate: "20",
+    penaltyPeriodDays: "7",
+    penaltyBase: "outstanding_total",
+    penaltyMaxPeriods: "4",
+    recoveryAfterDays: "30",
+    active: true,
+  } as const;
+  const messages = (value: Record<string, unknown>) =>
+    productSchema.safeParse(value).error?.issues.map((issue) => issue.message) ?? [];
+
+  it("accepts an installment product of 2 to 6 months", () => {
+    expect(productSchema.safeParse(PRODUCT).success).toBe(true);
+  });
+  it("needs at least 2 months for installments", () => {
+    expect(messages({ ...PRODUCT, minTermMonths: "1" })).toEqual(["installmentMin"]);
+  });
+  it("lets a one-payment product start at 1 month", () => {
+    expect(
+      messages({ ...PRODUCT, repaymentType: "single", minTermMonths: "1", defaultTermMonths: "1" }),
+    ).toEqual([]);
+  });
+  it("keeps the shortest term within the usual term", () => {
+    expect(messages({ ...PRODUCT, minTermMonths: "4" })).toEqual(["minOrder"]);
+  });
+  it("refuses an unknown repayment type", () => {
+    expect(productSchema.safeParse({ ...PRODUCT, repaymentType: "weekly" }).success).toBe(false);
   });
 });

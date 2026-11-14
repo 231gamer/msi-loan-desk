@@ -578,10 +578,16 @@ async function ApprovalsContent({ searchParams }: { searchParams: PageProps<"/ap
                               ["loanTotal", formatMoney(String(payload.total_due_cents ?? "0"))],
                               [
                                 "loanTerm",
-                                t("loanTermValue", {
-                                  months: Number(payload.term_months ?? 0),
-                                  product: String(payload.product ?? ""),
-                                }),
+                                payload.repayment_type === "installments"
+                                  ? t("loanInstallmentsValue", {
+                                      count: Number(payload.installment_count ?? 0),
+                                      amount: formatMoney(String(payload.installment_cents ?? "0")),
+                                      product: String(payload.product ?? ""),
+                                    })
+                                  : t("loanTermValue", {
+                                      months: Number(payload.term_months ?? 0),
+                                      product: String(payload.product ?? ""),
+                                    }),
                               ],
                             ] as const
                           ).map(([key, value]) => (

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { loanPill } from "./loans";
+import { INSTALLMENT_TONE, installmentStatus, loanPill } from "./loans";
 
 const base = {
   dueDate: "2026-03-11",
@@ -40,5 +40,24 @@ describe("loanPill", () => {
       "closed",
     );
     expect(loanPill({ ...base, status: "recovery" })).toEqual({ key: "recovery", tone: "recovery" });
+  });
+});
+
+describe("installment loans", () => {
+  it("says an installment loan in arrears is behind, not overdue", () => {
+    expect(loanPill({ ...base, status: "behind", daysOverdue: 23 })).toEqual({
+      key: "behind",
+      tone: "due",
+      days: 23,
+    });
+  });
+  it("reads the installment status from SQL and gives each its colour", () => {
+    expect(installmentStatus("part_paid")).toBe("part_paid");
+    expect(installmentStatus("behind")).toBe("behind");
+    expect(installmentStatus("something else")).toBe("not_due");
+    expect(installmentStatus(null)).toBe("not_due");
+    expect(INSTALLMENT_TONE.paid).toBe("active");
+    expect(INSTALLMENT_TONE.behind).toBe("overdue");
+    expect(INSTALLMENT_TONE.not_due).toBe("pending");
   });
 });

@@ -118,7 +118,7 @@ async function ProductsTab() {
   const { data, error } = await supabase
     .from("loan_products")
     .select(
-      "id, name, interest_rate_bps, default_term_months, max_term_months, penalty_rate_bps, penalty_period_days, penalty_base, penalty_max_periods, recovery_after_days, active",
+      "id, name, interest_rate_bps, repayment_type, min_term_months, default_term_months, max_term_months, penalty_rate_bps, penalty_period_days, penalty_base, penalty_max_periods, recovery_after_days, active",
     )
     .order("name");
   if (error !== null) throw new Error("Could not read loan products");
@@ -128,6 +128,8 @@ async function ProductsTab() {
         id: product.id,
         name: product.name,
         interestRateBps: product.interest_rate_bps,
+        repaymentType: product.repayment_type === "installments" ? "installments" : "single",
+        minTermMonths: product.min_term_months,
         defaultTermMonths: product.default_term_months,
         maxTermMonths: product.max_term_months,
         penaltyRateBps: product.penalty_rate_bps,

@@ -445,7 +445,9 @@
       "penalty": "Penalty",
       "status": "Status",
       "interestValue": "{rate} flat per month",
+      "interestOnceValue": "{rate} charged once",
       "termValue": "{term} {term, plural, one {month} other {months}} (up to {max})",
+      "termRangeValue": "{term} {term, plural, one {month} other {months}} ({min} to {max})",
       "penaltyValue": "{rate} every {days} days, at most {max}",
       "active": "Active",
       "inactive": "Not offered",
@@ -454,7 +456,10 @@
       "editHeading": "Edit {name}",
       "fields": {
         "name": "Name",
+        "repaymentType": "Repayment",
         "interestRate": "Interest per month (%)",
+        "interestOnce": "Interest, charged once (%)",
+        "minTermMonths": "Shortest term (months)",
         "defaultTermMonths": "Usual term (months)",
         "maxTermMonths": "Longest term (months)",
         "penaltyRate": "Penalty rate (%)",
@@ -469,10 +474,17 @@
         "original_due": "The original amount due"
       },
       "snapshotNote": "Interest is flat: principal × rate × months, charged at payout. Existing loans keep the rules they were approved with.",
+      "snapshotNoteInstallments": "Interest is charged once: principal × rate, whatever the number of months, at payout. The total is split into equal monthly installments (the last one takes the cents left over). Late-payment penalties start only after the final due date. Existing loans keep the rules they were approved with.",
       "validation": {
         "percent": "Enter a percentage with at most two decimals (for example 20 or 12.5).",
         "wholeNumber": "Enter a whole number in the allowed range.",
-        "termOrder": "The usual term cannot be longer than the longest term."
+        "termOrder": "The usual term cannot be longer than the longest term.",
+        "minOrder": "The shortest term cannot be longer than the usual term.",
+        "installmentMin": "Monthly installments need at least 2 months."
+      },
+      "repayment": {
+        "single": "One payment at the end",
+        "installments": "Monthly installments"
       }
     }
   },
@@ -981,6 +993,7 @@
     "loanTotal": "Total to repay",
     "loanTerm": "Term",
     "loanTermValue": "{months, plural, one {# month} other {# months}}, {product}",
+    "loanInstallmentsValue": "{count} × {amount} monthly ({product})",
     "purpose": "Purpose",
     "aboveLimit": "Above the {limit} manager limit, so it needs CEO approval.",
     "openLoan": "Open loan {loan}",
@@ -1087,6 +1100,7 @@
       "principal": "Amount to lend ($)",
       "term": "Term",
       "months": "{count, plural, one {# month} other {# months}}",
+      "installmentsOption": "{count} months ({count} installments)",
       "officer": "Loan officer",
       "noOfficer": "No officer",
       "purpose": "Purpose (optional)",
@@ -1098,7 +1112,17 @@
         "explain": "Flat interest at {rate} per month, charged when the loan is paid out.",
         "penalty": "If unpaid, the first penalty of {amount} is charged on {date}.",
         "manager": "A manager approves loans up to {limit}.",
-        "ceo": "Above {limit}: the CEO approves this loan."
+        "ceo": "Above {limit}: the CEO approves this loan.",
+        "interestOnce": "Interest (charged once)",
+        "monthly": "Each month",
+        "explainInstallments": "Interest of {rate} is charged once, when the loan is paid out. The total is repaid in {count} equal monthly installments, the first one month after payout and the last on {last}. Nothing extra is charged while the loan is within its term; if money is still owed after {last}, the late-payment penalty applies.",
+        "scheduleHeading": "Repayment schedule if paid out today",
+        "scheduleLabel": "Repayment schedule",
+        "columns": {
+          "no": "No.",
+          "due": "Due date",
+          "amount": "Amount"
+        }
       },
       "collateralIntro": "Collateral is optional for this product setting. Pick the borrower's items or add a new one.",
       "collateralIntroRequired": "Every loan needs collateral (A-10). Pick the borrower's items or add a new one.",
@@ -1204,6 +1228,7 @@
       "active": "Active",
       "dueToday": "Due today",
       "overdue": "{count, plural, one {# day overdue} other {# days overdue}}",
+      "behind": "{count, plural, =0 {Behind schedule} one {# day behind} other {# days behind}}",
       "recovery": "Recovery",
       "closed": "Closed",
       "closedOn": "Closed {date}",
@@ -1242,7 +1267,8 @@
         "paid": "Paid so far",
         "noPayments": "No payments yet",
         "payments": "{count, plural, one {# payment} other {# payments}}, last on {date}",
-        "penaltyCount": "{count} of {max} weekly charges"
+        "penaltyCount": "{count} of {max} weekly charges",
+        "interestOnce": "{rate} charged once, {months} monthly installments"
       },
       "outstanding": "Outstanding",
       "components": "Principal {principal} · interest {interest} · penalties {penalty}",
@@ -1351,6 +1377,32 @@
         "sending": "Sending…",
         "cancel": "Cancel",
         "pending": "An extension of {months, plural, one {# month} other {# months}} is waiting for approval (asked by {name} on {date})."
+      },
+      "nextInstallment": "Next installment: {amount} due {date} (installment {number} of {count})",
+      "behindSchedule": "Behind schedule: {amount} unpaid since {date} ({days, plural, one {# day} other {# days}}). No charge while the loan is within its term.",
+      "scheduleDone": "Every installment is paid.",
+      "schedule": {
+        "heading": "Repayment schedule",
+        "intro": "{count} monthly installments, interest charged once. Payments cover the oldest installment first; penalty payments do not count toward installments.",
+        "label": "Repayment schedule",
+        "columns": {
+          "no": "No.",
+          "due": "Due date",
+          "amount": "Amount",
+          "paid": "Paid",
+          "owed": "Still owed",
+          "status": "Status"
+        },
+        "status": {
+          "paid": "Paid",
+          "part_paid": "Part paid",
+          "due": "Due",
+          "behind": "Behind",
+          "not_due": "Not yet due"
+        },
+        "line": "Installment {number}: {amount} due {date}",
+        "owedOn": "{amount} still owed",
+        "total": "Total"
       }
     }
   },
