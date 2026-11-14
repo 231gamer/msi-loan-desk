@@ -831,3 +831,23 @@ Wizard: schedule and total on the amount step and "Check and send". Loan page: "
 | $750, 2 months, 20% | $150.00 | $900.00 | 2 × $450.00 |
 
 Default example: $2,000 over 4 months paid out 15 Jan 2026, due 15 Feb, 15 Mar, 15 Apr, 15 May; $1,800 paid by 15 May leaves $600.00 of principal. 16 May: overdue. Penalties $120.00 (22 May), $144.00, $172.80, $207.36 (owed $1,244.16). Recovery eligible from 14 Jun (final due date + 30).
+
+## Addendum B. Installable app and offline field cash (approved by Foday 2026-11-14)
+
+Brings forward the "offline field mode" of section 15 for loan officers. Nothing about money, permissions or the database changes: offline payments go through `record_field_payment` like the online Collect form.
+
+### B.1 Install
+
+- Web app manifest (`/manifest.webmanifest`): app title, MSI icons (192, 512, maskable 512), standalone display, MSI purple. Chrome on Android offers "Install app".
+- Service worker (`/sw.js`, no library): caches only the two static offline pages (`/offline`, `/offline/field`), the files they load and the icons. Pages with data are never cached. A page that cannot load offline shows `/offline` ("You're offline"); anything under `/field` shows `/offline/field`.
+- Next step (not in this change): a Trusted Web Activity APK built from the manifest (Bubblewrap), sideloaded or on the Play Store.
+
+### B.2 Offline field cash (loan officer)
+
+1. With signal, `/field` saves the officer's own list on the phone (IndexedDB): loan id and number, customer name, amount to collect now, amount owed, due date. No phone numbers, addresses, ID scans or documents.
+2. Offline, `/offline/field` shows that list. Collect saves a payment on the phone with a new request key (UUID), the amount, method (cash, mobile money, bank; no cheques in the field) and, for mobile money and bank, the transaction reference.
+3. The officer gets a provisional slip: reference `OFF-` plus six characters of the key, customer, loan, amount, method and collection time, marked "not the official receipt".
+4. When signal returns (the page's online event, opening the app, every 20 seconds while something waits, and Background Sync on Android) the service worker sends each payment to `POST /api/field/payments`. The route checks the custom header and origin, the signed-in loan officer, that the payment belongs to that officer (`userId`), and the input, then calls `record_field_payment` with today's business date and the request key. A key the server has seen returns the same payment, so nothing is recorded twice.
+5. **Date:** a payment is dated the day it reaches the server (Foday 2026-11-14; no back-dating rule change). The payment reference records the real collection time: cash "Collected offline 14 Nov 2026, 10:32"; mobile money and bank "<reference> · collected offline 14 Nov 2026, 10:32" (reference up to 60 characters offline).
+6. A refusal a retry cannot fix (FORBIDDEN, OVERPAYMENT, INVALID_STATE, INVALID_INPUT, REFERENCE_REQUIRED, DATE_NOT_ALLOWED, PERIOD_LOCKED) marks the payment "Not recorded" with the reason; the officer keeps the cash and gives the slip to the cashier. Anything else is retried.
+7. **On the phone:** the saved list is wiped on sign-out (the sign-in page clears it, so expired and ended sessions too) and is not shown after 72 hours without a sync (`OFFLINE_KEEP_HOURS`). Sent payments are cleared at sign-out. **Unsent payments are never deleted automatically** (cash already collected); signing out with unsent payments asks first, and they send at the next sign-in on that phone by the same officer. A refused payment can be removed by the officer after the cashier has dealt with it.

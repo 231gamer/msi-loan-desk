@@ -2,6 +2,14 @@
 
 All notable changes, one section per phase. Format follows Keep a Changelog.
 
+## [Offline field cash and installable app] 2026-11-14
+### Added
+- Installable app (SPEC addendum B): web app manifest and MSI icons; Chrome on Android offers "Install app" (full screen, home-screen icon).
+- Service worker: pages that cannot load without signal show "You're offline" instead of the browser's error; it caches only the two static offline pages and their files.
+- Offline field cash for loan officers: the officer's own list is saved on the phone when Field cash opens; offline, Collect saves the payment on the phone and shows a provisional slip; payments send themselves when signal returns (recorded once, dated the day they arrive, the reference keeps the collection time). Refused payments are shown with the reason.
+- Field cash shows payments still waiting to send or refused; sign-out warns about unsent payments, which stay on the phone until sent. The saved list is wiped on sign-out and after 72 hours without a sync.
+- `POST /api/field/payments` (loan officers; same-site requests only) and an end-to-end offline test.
+
 ## [Installment loans] 2026-11-14 (PR #4, deployed to live 2026-11-14)
 ### Added
 - Installment loans (SPEC addendum A): product type with interest charged once and equal monthly installments (the last takes the cents left over), first due one month after payout. Seeded product "Installment loan (monthly)": 20% once, 2 to 6 months, the standard late-payment rules.

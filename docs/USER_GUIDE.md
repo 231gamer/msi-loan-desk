@@ -2,6 +2,22 @@
 
 For MSI staff. Each section says who does the step. Money is in US dollars; dates are shown as 05 Feb 2026.
 
+## Installing the app and working offline
+
+### Install on an Android phone
+1. Open the LoanDesk address in Chrome and sign in.
+2. Chrome shows "Install app" (or open the ⋮ menu and choose "Install app" / "Add to Home screen").
+3. LoanDesk now opens from its own icon, full screen. Updates arrive by themselves.
+
+### Field cash without signal (loan officers)
+- Open **Field cash** once a day with signal. Your list is then saved on the phone for 72 hours.
+- With no signal, open Field cash as usual. You see your saved list. Tap **Collect**, enter the amount (and the transaction reference for mobile money or bank), then **Save payment**.
+- Show the borrower the slip. It is **not** the official receipt: it has a reference starting with `OFF-`.
+- When the phone has signal again, the payment sends itself. The slip then shows "Sent: receipt RCT-…" and you can open the official receipt.
+- The payment is dated the day it is sent. Its reference says when you really collected it.
+- If the server refuses a payment (for example the loan was already paid off), it shows "Not recorded" with the reason. Keep the cash and give the slip to the cashier.
+- Signing out removes your list from the phone. Payments not yet sent stay and send the next time you sign in on the same phone.
+
 ## Installment loans
 
 Some borrowers repay in equal monthly installments instead of one payment at the end. Choose the product **"Installment loan (monthly)"** (the admin can change it under Settings → Loan products).

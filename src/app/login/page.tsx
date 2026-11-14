@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { blankIfPending } from "@/lib/text";
 
 import { LoginForm } from "./login-form";
+import { OfflineCleanup } from "./offline-cleanup";
 
 type Notice = "signed-out" | "inactive" | "expired" | "temp-expired" | "sign-in-again";
 const NOTICES: ReadonlySet<string> = new Set<Notice>([
@@ -20,6 +21,7 @@ const NOTICES: ReadonlySet<string> = new Set<Notice>([
 export default function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <main className="flex min-h-dvh items-start justify-center px-4 py-12 sm:items-center">
+      <OfflineCleanup />
       <div className="w-full max-w-sm">
         <Suspense fallback={<LoginSkeleton />}>
           <LoginContent searchParams={searchParams} />
