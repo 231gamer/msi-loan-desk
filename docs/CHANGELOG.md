@@ -2,7 +2,7 @@
 
 All notable changes, one section per phase. Format follows Keep a Changelog.
 
-## [Installment loans] 2026-11-14 (branch `feature/installment-loans`, not yet deployed)
+## [Installment loans] 2026-11-14 (PR #4, deployed to live 2026-11-14)
 ### Added
 - Installment loans (SPEC addendum A): product type with interest charged once and equal monthly installments (the last takes the cents left over), first due one month after payout. Seeded product "Installment loan (monthly)": 20% once, 2 to 6 months, the standard late-payment rules.
 - Within the term nothing extra is charged; an unpaid installment makes the loan "behind schedule". After the final due date the existing overdue, penalty and recovery rules apply.
