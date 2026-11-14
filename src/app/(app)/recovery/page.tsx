@@ -122,7 +122,7 @@ async function RecoveryContent() {
             ) : (
               <ScrollRegion label={t(`${key as "openCases"}.table`)}>
                 <table className="w-full min-w-[720px] border-collapse text-sm">
-                  <thead className="bg-subtle text-left text-xs text-ink-muted">
+                  <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
                       {(["case", "borrower", "loan", "stage", "opened", "owes"] as const).map((column) => (
                         <th

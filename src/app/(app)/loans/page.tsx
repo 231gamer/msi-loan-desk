@@ -173,14 +173,17 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
       <TopBar title={t("title")} staff={staff} />
       <div className="grid animate-in grid-cols-1 gap-4 p-4 duration-200 fade-in lg:gap-5 lg:p-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <nav aria-label={t("tabsLabel")} className="flex flex-wrap gap-2">
+          <nav
+            aria-label={t("tabsLabel")}
+            className="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+          >
             {LOAN_TABS.map((target) => (
               <Link
                 key={target}
                 href={href({ tab: target === "all" ? "" : target, page: "" })}
                 aria-current={target === tab ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-11 items-center gap-1.5 rounded-control border px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ease-out lg:min-h-10",
+                  "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-control border px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ease-out lg:min-h-10",
                   target === tab
                     ? "border-primary bg-primary text-white hover:text-white"
                     : "border-line-input bg-surface text-ink hover:bg-page hover:text-ink",
@@ -291,7 +294,7 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
               </ul>
               <ScrollRegion label={t("tableLabel")} className="hidden md:block">
                 <table className="w-full min-w-[880px] border-collapse text-sm">
-                  <thead className="bg-subtle text-left text-xs text-ink-muted">
+                  <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
                       {(
                         ["loan", "customer", "branch", "officer", "lent", "due", "owes", "status"] as const

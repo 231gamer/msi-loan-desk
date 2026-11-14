@@ -329,7 +329,7 @@ async function ItemContent({ params }: PageProps<"/collateral/[id]">) {
               </div>
               <ScrollRegion label={t("log.table")} className="mt-3">
                 <table className="w-full min-w-[560px] border-collapse text-sm">
-                  <thead className="bg-subtle text-left text-xs text-ink-muted">
+                  <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
                       {(["when", "event", "detail", "by", "witness"] as const).map((column) => (
                         <th key={column} scope="col" className="px-4 py-2.5 font-semibold">

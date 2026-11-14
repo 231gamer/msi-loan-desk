@@ -195,7 +195,7 @@ async function ReportContent({ params, searchParams }: PageProps<"/reports/[...r
                       section.columns.length > 4 && "min-w-[760px]",
                     )}
                   >
-                    <thead className="bg-subtle text-left text-xs text-ink-muted">
+                    <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                       <tr>
                         {section.columns.map((column) => (
                           <th

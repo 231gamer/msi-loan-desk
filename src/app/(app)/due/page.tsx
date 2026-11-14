@@ -204,14 +204,17 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
 
         <section aria-labelledby="due-results" className="min-w-0 rounded-card border border-line bg-surface">
           <div className="grid gap-3 border-b border-page p-4 lg:flex lg:items-end lg:justify-between print:hidden">
-            <nav aria-label={t("tabsLabel")} className="flex flex-wrap gap-2">
+            <nav
+              aria-label={t("tabsLabel")}
+              className="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+            >
               {TABS.map((target) => (
                 <Link
                   key={target}
                   href={href({ tab: target === "all" ? "" : target })}
                   aria-current={target === tab ? "page" : undefined}
                   className={cn(
-                    "inline-flex min-h-11 items-center gap-1.5 rounded-control border px-4 text-sm font-semibold whitespace-nowrap lg:min-h-10",
+                    "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-control border px-4 text-sm font-semibold whitespace-nowrap lg:min-h-10",
                     target === tab
                       ? "border-primary bg-primary text-white hover:text-white"
                       : "border-line-input bg-surface text-ink hover:bg-page hover:text-ink",
@@ -293,7 +296,7 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
               </ul>
               <ScrollRegion label={t("tableLabel")} className="hidden md:block print:block">
                 <table className="w-full min-w-[1040px] border-collapse text-sm">
-                  <thead className="bg-subtle text-left text-xs text-ink-muted">
+                  <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
                     <tr>
                       {(
                         [

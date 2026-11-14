@@ -39,7 +39,7 @@ export function BranchesPanel({ branches }: { branches: BranchRow[] }) {
           className="-mx-4 border-y border-line sm:mx-0 sm:rounded-control sm:border"
         >
           <table className="w-full min-w-[520px] border-collapse text-sm">
-            <thead className="bg-subtle text-left text-xs font-semibold text-ink-muted">
+            <thead className="bg-subtle text-left text-[13px] font-semibold text-ink-strong-muted">
               <tr>
                 <th scope="col" className="px-3 py-2.5">
                   {t("branches.code")}

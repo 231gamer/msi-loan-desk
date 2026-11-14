@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
@@ -65,7 +66,7 @@ interface JournalLine {
 
 function tabClass(active: boolean) {
   return cn(
-    "inline-flex min-h-11 items-center gap-2 rounded-control border px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ease-out lg:min-h-10",
+    "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-control border px-4 text-sm font-semibold whitespace-nowrap transition-colors duration-150 ease-out lg:min-h-10",
     active
       ? "border-primary bg-primary text-white hover:text-white"
       : "border-line-input bg-surface text-ink hover:bg-page hover:text-ink",
@@ -195,7 +196,10 @@ async function ApprovalsContent({ searchParams }: { searchParams: PageProps<"/ap
           {decides ? t("waitingForYou", { count: waiting }) : t("mineIntro")}
         </p>
         {tabs.length > 1 ? (
-          <nav aria-label={t("tabsLabel")} className="flex flex-wrap gap-2">
+          <nav
+            aria-label={t("tabsLabel")}
+            className="-mx-4 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+          >
             {tabs.map((item) => (
               <Link
                 key={item}
@@ -215,7 +219,7 @@ async function ApprovalsContent({ searchParams }: { searchParams: PageProps<"/ap
             {t(`empty.${tab}`)}
           </p>
         ) : (
-          <ul className="grid gap-4">
+          <ul className="divide-y divide-line overflow-hidden rounded-card border border-line bg-surface">
             {rows.map((row) => {
               const payload = (row.payload ?? {}) as Record<string, unknown>;
               const changes = changesOf(row.payload);
@@ -279,359 +283,376 @@ async function ApprovalsContent({ searchParams }: { searchParams: PageProps<"/ap
                 <li key={row.id}>
                   <article
                     aria-labelledby={headingId}
-                    className="grid gap-4 rounded-card border border-line bg-surface p-4 sm:p-6"
+                    className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_16.5rem] lg:gap-8 lg:px-6"
                   >
-                    <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <StatusBadge tone="pending">{typeLabel(row.type)}</StatusBadge>
-                        <h2 id={headingId} className="text-base font-bold break-words text-ink">
+                    <div className="grid min-w-0 content-start gap-3">
+                      <header className="grid gap-2">
+                        <span className="inline-flex w-fit items-center rounded-badge bg-subtle px-2.5 py-0.5 text-xs font-semibold text-ink-strong-muted ring-1 ring-line">
+                          {typeLabel(row.type)}
+                        </span>
+                        <h2
+                          id={headingId}
+                          className="text-base font-bold break-words text-ink sm:text-[17px]"
+                        >
                           {title}
                         </h2>
-                      </div>
-                      <div className="flex shrink-0 flex-wrap items-center gap-2 text-sm text-ink-muted">
-                        <span>
-                          {people.get(row.requested_by) ?? ""} · {ageText(row.requested_at)}
-                        </span>
-                        {tab === "mine" ? (
-                          <StatusBadge tone={statusTone[row.status] ?? "pending"}>
-                            {t(`status.${row.status as "pending"}`)}
-                          </StatusBadge>
-                        ) : null}
-                      </div>
-                    </header>
+                      </header>
 
-                    {row.type === "customer_edit" || row.type === "customer_blacklist" ? (
-                      <div className="grid gap-3">
-                        {changes.map((change) => (
-                          <div key={change.column} className="grid gap-2">
-                            {changes.length > 1 ? (
-                              <p className="text-sm font-semibold text-ink">{columnLabel(change.column)}</p>
-                            ) : null}
-                            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                              <div className="min-w-0">
-                                <dt className="text-xs font-medium text-ink-muted">{t("current")}</dt>
-                                <dd className="mt-0.5 font-semibold break-words text-ink">
-                                  {describeCustomerValue(change.column, change.before, lookups)}
-                                </dd>
-                              </div>
-                              <div className="min-w-0">
-                                <dt className="text-xs font-medium text-ink-muted">{t("requested")}</dt>
-                                <dd className="mt-0.5 font-semibold break-words text-ink">
-                                  {describeCustomerValue(change.column, change.after, lookups)}
-                                </dd>
-                              </div>
-                            </dl>
-                          </div>
-                        ))}
-                        {"photo" in payload ? <p className="text-sm text-ink">{t("newPhoto")}</p> : null}
-                        {row.reason !== null ? (
-                          <p className="text-sm text-ink">
-                            <span className="text-ink-muted">{t("reasonGiven")}: </span>
-                            {row.reason}
-                          </p>
-                        ) : null}
-                        {"duplicate_override" in payload ? (
-                          <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
-                            {t("duplicateOverride")}
-                          </p>
-                        ) : null}
-                        {typeof payload.customer_id === "string" ? (
-                          <Link href={`/customers/${payload.customer_id}`} className="text-sm font-semibold">
-                            {t("openCustomer", { code: String(payload.code ?? "") })}
-                          </Link>
-                        ) : null}
-                      </div>
-                    ) : null}
-
-                    {row.type === "manual_journal" ||
-                    row.type === "capital_in" ||
-                    row.type === "journal_reversal" ? (
-                      <div className="grid gap-3">
-                        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                          <div>
-                            <dt className="text-xs font-medium text-ink-muted">{t("date")}</dt>
-                            <dd className="mt-0.5 font-semibold text-ink">
-                              {typeof payload.entry_date === "string" ? formatDate(payload.entry_date) : ""}
-                            </dd>
-                          </div>
-                          {typeof payload.reference === "string" ? (
-                            <div>
-                              <dt className="text-xs font-medium text-ink-muted">{t("reference")}</dt>
-                              <dd className="mt-0.5 font-semibold text-ink">{payload.reference}</dd>
+                      {row.type === "customer_edit" || row.type === "customer_blacklist" ? (
+                        <div className="grid gap-3">
+                          {changes.map((change) => (
+                            <div key={change.column} className="grid gap-2">
+                              {changes.length > 1 ? (
+                                <p className="text-sm font-semibold text-ink">{columnLabel(change.column)}</p>
+                              ) : null}
+                              <dl className="kv">
+                                <div className="min-w-0">
+                                  <dt className="text-xs font-medium text-ink-muted">{t("current")}</dt>
+                                  <dd className="mt-0.5 font-semibold break-words text-ink">
+                                    {describeCustomerValue(change.column, change.before, lookups)}
+                                  </dd>
+                                </div>
+                                <div className="min-w-0">
+                                  <dt className="text-xs font-medium text-ink-muted">{t("requested")}</dt>
+                                  <dd className="mt-0.5 font-semibold break-words text-ink">
+                                    {describeCustomerValue(change.column, change.after, lookups)}
+                                  </dd>
+                                </div>
+                              </dl>
                             </div>
+                          ))}
+                          {"photo" in payload ? <p className="text-sm text-ink">{t("newPhoto")}</p> : null}
+                          {row.reason !== null ? (
+                            <p className="text-sm text-ink">
+                              <span className="text-ink-muted">{t("reasonGiven")}: </span>
+                              {row.reason}
+                            </p>
                           ) : null}
-                        </dl>
-                        <table className="w-full border-collapse text-sm">
-                          <caption className="sr-only">{t("linesOf", { title })}</caption>
-                          <thead className="bg-subtle text-left text-xs text-ink-muted">
-                            <tr>
-                              <th scope="col" className="px-3 py-2 font-semibold">
-                                {t("account")}
-                              </th>
-                              <th scope="col" className="px-3 py-2 text-right font-semibold">
-                                {t("debit")}
-                              </th>
-                              <th scope="col" className="px-3 py-2 text-right font-semibold">
-                                {t("credit")}
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {lines.map((line, index) => (
-                              <tr key={`${line.account ?? ""}-${index}`} className="border-t border-page">
-                                <td className="px-3 py-2 text-ink">
-                                  {line.account} · {accounts.get(line.account ?? "") ?? ""}
-                                </td>
-                                <td className="tabular px-3 py-2 text-right">
-                                  {line.debit_cents === undefined ? "" : formatMoney(line.debit_cents)}
-                                </td>
-                                <td className="tabular px-3 py-2 text-right">
-                                  {line.credit_cents === undefined ? "" : formatMoney(line.credit_cents)}
-                                </td>
+                          {"duplicate_override" in payload ? (
+                            <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
+                              {t("duplicateOverride")}
+                            </p>
+                          ) : null}
+                          {typeof payload.customer_id === "string" ? (
+                            <Link
+                              href={`/customers/${payload.customer_id}`}
+                              className="text-sm font-semibold"
+                            >
+                              {t("openCustomer", { code: String(payload.code ?? "") })}
+                            </Link>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {row.type === "manual_journal" ||
+                      row.type === "capital_in" ||
+                      row.type === "journal_reversal" ? (
+                        <div className="grid gap-3">
+                          <dl className="kv">
+                            <div>
+                              <dt className="text-xs font-medium text-ink-muted">{t("date")}</dt>
+                              <dd className="mt-0.5 font-semibold text-ink">
+                                {typeof payload.entry_date === "string" ? formatDate(payload.entry_date) : ""}
+                              </dd>
+                            </div>
+                            {typeof payload.reference === "string" ? (
+                              <div>
+                                <dt className="text-xs font-medium text-ink-muted">{t("reference")}</dt>
+                                <dd className="mt-0.5 font-semibold text-ink">{payload.reference}</dd>
+                              </div>
+                            ) : null}
+                          </dl>
+                          <table className="w-full border-collapse text-sm">
+                            <caption className="sr-only">{t("linesOf", { title })}</caption>
+                            <thead className="bg-subtle text-left text-[13px] text-ink-strong-muted">
+                              <tr>
+                                <th scope="col" className="px-3 py-2 font-semibold">
+                                  {t("account")}
+                                </th>
+                                <th scope="col" className="px-3 py-2 text-right font-semibold">
+                                  {t("debit")}
+                                </th>
+                                <th scope="col" className="px-3 py-2 text-right font-semibold">
+                                  {t("credit")}
+                                </th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    ) : null}
+                            </thead>
+                            <tbody>
+                              {lines.map((line, index) => (
+                                <tr key={`${line.account ?? ""}-${index}`} className="border-t border-page">
+                                  <td className="px-3 py-2 text-ink">
+                                    {line.account} · {accounts.get(line.account ?? "") ?? ""}
+                                  </td>
+                                  <td className="tabular px-3 py-2 text-right">
+                                    {line.debit_cents === undefined ? "" : formatMoney(line.debit_cents)}
+                                  </td>
+                                  <td className="tabular px-3 py-2 text-right">
+                                    {line.credit_cents === undefined ? "" : formatMoney(line.credit_cents)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      ) : null}
 
-                    {row.type === "payment_void" ? (
-                      <div className="grid gap-3">
-                        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                          <div>
-                            <dt className="text-xs font-medium text-ink-muted">{t("voidReceived")}</dt>
-                            <dd className="mt-0.5 font-semibold text-ink">
-                              {typeof payload.received_on === "string" ? formatDate(payload.received_on) : ""}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="text-xs font-medium text-ink-muted">{t("voidMethod")}</dt>
-                            <dd className="mt-0.5 font-semibold text-ink">
-                              {t(`methods.${String(payload.method ?? "cash") as "cash"}`)}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="text-xs font-medium text-ink-muted">{t("voidLoan")}</dt>
-                            <dd className="mt-0.5 font-semibold text-ink">{String(payload.loan_no ?? "")}</dd>
-                          </div>
-                        </dl>
-                        {row.reason !== null ? (
-                          <p className="text-sm text-ink">
-                            <span className="text-ink-muted">{t("reasonGiven")}: </span>
-                            {row.reason}
-                          </p>
-                        ) : null}
-                        <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
-                          {t("voidNote")}
-                        </p>
-                      </div>
-                    ) : null}
-                    {row.type === "write_off" ? (
-                      <div className="grid gap-3">
-                        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-                          {(
-                            [
-                              ["writeOffPenalty", formatMoney(String(payload.penalty_cents ?? "0"))],
-                              ["writeOffInterest", formatMoney(String(payload.interest_cents ?? "0"))],
-                              ["writeOffPrincipal", formatMoney(String(payload.principal_cents ?? "0"))],
-                              [
-                                "writeOffCase",
-                                payload.case_no === null || payload.case_no === undefined
-                                  ? t("writeOffNoCase")
-                                  : `${String(payload.case_no)} · ${t(`recoveryStages.${String(payload.case_stage) as "opened"}`)}`,
-                              ],
-                            ] as const
-                          ).map(([key, value]) => (
-                            <div key={key}>
-                              <dt className="text-xs font-medium text-ink-muted">{t(key)}</dt>
-                              <dd className="tabular mt-0.5 font-semibold text-ink">{value}</dd>
+                      {row.type === "payment_void" ? (
+                        <div className="grid gap-3">
+                          <dl className="kv">
+                            <div>
+                              <dt className="text-xs font-medium text-ink-muted">{t("voidReceived")}</dt>
+                              <dd className="mt-0.5 font-semibold text-ink">
+                                {typeof payload.received_on === "string"
+                                  ? formatDate(payload.received_on)
+                                  : ""}
+                              </dd>
                             </div>
-                          ))}
-                        </dl>
-                        {row.reason !== null ? (
-                          <p className="text-sm text-ink">
-                            <span className="text-ink-muted">{t("reasonGiven")}: </span>
-                            {row.reason}
-                          </p>
-                        ) : null}
-                        <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
-                          {t(payload.override === true ? "writeOffOverride" : "writeOffNote", {
-                            amount: formatMoney(String(payload.total_cents ?? "0")),
-                          })}
-                        </p>
-                      </div>
-                    ) : null}
-                    {row.type === "day_close" ? (
-                      <div className="grid gap-3">
-                        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                          {(
-                            [
-                              ["dayExpected", formatMoney(String(payload.expected_cents ?? "0"))],
-                              ["dayCounted", formatMoney(String(payload.counted_cents ?? "0"))],
-                              ["dayVariance", formatMoneySigned(String(payload.variance_cents ?? "0"))],
-                            ] as const
-                          ).map(([key, value]) => (
-                            <div key={key}>
-                              <dt className="text-xs font-medium text-ink-muted">{t(key)}</dt>
-                              <dd className="tabular mt-0.5 font-semibold text-ink">{value}</dd>
+                            <div>
+                              <dt className="text-xs font-medium text-ink-muted">{t("voidMethod")}</dt>
+                              <dd className="mt-0.5 font-semibold text-ink">
+                                {t(`methods.${String(payload.method ?? "cash") as "cash"}`)}
+                              </dd>
                             </div>
-                          ))}
-                        </dl>
-                        {row.reason !== null ? (
-                          <p className="text-sm text-ink">
-                            <span className="text-ink-muted">{t("reasonGiven")}: </span>
-                            {row.reason}
-                          </p>
-                        ) : null}
-                        <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
-                          {t("dayLockNote")}
-                        </p>
-                      </div>
-                    ) : null}
-                    {row.type === "expense" ? (
-                      <dl className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-                        {(
-                          [
-                            [
-                              "expenseDate",
-                              typeof payload.expense_date === "string"
-                                ? formatDate(payload.expense_date)
-                                : "",
-                            ],
-                            [
-                              "expenseAccount",
-                              `${String(payload.account ?? "")} · ${String(payload.account_name ?? "")}`,
-                            ],
-                            [
-                              "expensePayee",
-                              typeof payload.payee === "string" ? payload.payee : t("expenseNoPayee"),
-                            ],
-                            [
-                              "expensePaidFrom",
-                              typeof payload.paid_from === "string"
-                                ? payload.paid_from
-                                : t("expenseOnCredit"),
-                            ],
-                          ] as const
-                        ).map(([key, value]) => (
-                          <div key={key}>
-                            <dt className="text-xs font-medium text-ink-muted">{t(key)}</dt>
-                            <dd className="mt-0.5 font-semibold break-words text-ink">{value}</dd>
-                          </div>
-                        ))}
-                      </dl>
-                    ) : null}
-                    {row.type === "loan_extension" ? (
-                      <div className="grid gap-3">
-                        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                          <div>
-                            <dt className="text-xs font-medium text-ink-muted">{t("extensionDueNow")}</dt>
-                            <dd className="tabular mt-0.5 font-semibold text-ink">
-                              {typeof payload.old_due_date === "string"
-                                ? formatDate(payload.old_due_date)
-                                : ""}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="text-xs font-medium text-ink-muted">{t("extensionNewDue")}</dt>
-                            <dd className="tabular mt-0.5 font-semibold text-ink">
-                              {typeof payload.new_due_date === "string"
-                                ? formatDate(payload.new_due_date)
-                                : ""}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="text-xs font-medium text-ink-muted">{t("reasonGiven")}</dt>
-                            <dd className="mt-0.5 font-semibold text-ink">{row.reason ?? ""}</dd>
-                          </div>
-                        </dl>
-                        <p className="rounded-control bg-subtle px-3 py-2 text-sm text-ink">
-                          {t("extensionNote", {
-                            months: Number(payload.extra_months ?? 1),
-                            interest: formatMoney(String(payload.extra_interest_cents ?? "0")),
-                            owed: formatMoney(String(payload.owed_after_cents ?? "0")),
-                            due:
-                              typeof payload.new_due_date === "string"
-                                ? formatDate(payload.new_due_date)
-                                : "",
-                          })}
-                          {typeof payload.next_penalty_on === "string" && row.status === "pending"
-                            ? ` ${t("extensionNoPenalty", { date: formatDate(payload.next_penalty_on).slice(0, 6) })}`
-                            : ""}
-                        </p>
-                      </div>
-                    ) : null}
-                    {row.type === "journal_reversal" && row.reason !== null ? (
-                      <p className="text-sm text-ink">
-                        <span className="text-ink-muted">{t("reasonGiven")}: </span>
-                        {row.reason}
-                      </p>
-                    ) : null}
-
-                    {row.type === "loan_approval" ? (
-                      <div className="grid gap-3">
-                        <dl className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-                          {(
-                            [
-                              ["loanAmount", formatMoney(String(payload.principal_cents ?? "0"))],
-                              ["loanInterest", formatMoney(String(payload.interest_cents ?? "0"))],
-                              ["loanTotal", formatMoney(String(payload.total_due_cents ?? "0"))],
-                              [
-                                "loanTerm",
-                                payload.repayment_type === "installments"
-                                  ? t("loanInstallmentsValue", {
-                                      count: Number(payload.installment_count ?? 0),
-                                      amount: formatMoney(String(payload.installment_cents ?? "0")),
-                                      product: String(payload.product ?? ""),
-                                    })
-                                  : t("loanTermValue", {
-                                      months: Number(payload.term_months ?? 0),
-                                      product: String(payload.product ?? ""),
-                                    }),
-                              ],
-                            ] as const
-                          ).map(([key, value]) => (
-                            <div key={key} className="min-w-0">
-                              <dt className="text-xs font-medium text-ink-muted">{t(key)}</dt>
-                              <dd className="tabular mt-0.5 font-semibold break-words text-ink">{value}</dd>
+                            <div>
+                              <dt className="text-xs font-medium text-ink-muted">{t("voidLoan")}</dt>
+                              <dd className="mt-0.5 font-semibold text-ink">
+                                {String(payload.loan_no ?? "")}
+                              </dd>
                             </div>
-                          ))}
-                        </dl>
-                        {row.reason !== null ? (
-                          <p className="text-sm text-ink">
-                            <span className="text-ink-muted">{t("purpose")}: </span>
-                            {row.reason}
-                          </p>
-                        ) : null}
-                        {row.required_role === "ceo" ? (
+                          </dl>
+                          {row.reason !== null ? (
+                            <p className="text-sm text-ink">
+                              <span className="text-ink-muted">{t("reasonGiven")}: </span>
+                              {row.reason}
+                            </p>
+                          ) : null}
                           <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
-                            {t("aboveLimit", { limit: formatMoney(String(payload.limit_cents ?? "0")) })}
+                            {t("voidNote")}
                           </p>
-                        ) : null}
-                        {typeof payload.loan_id === "string" ? (
-                          <Link href={`/loans/${payload.loan_id}`} className="text-sm font-semibold">
-                            {t("openLoan", { loan: String(payload.loan_no ?? "") })}
-                          </Link>
+                        </div>
+                      ) : null}
+                      {row.type === "write_off" ? (
+                        <div className="grid gap-3">
+                          <dl className="kv">
+                            {(
+                              [
+                                ["writeOffPenalty", formatMoney(String(payload.penalty_cents ?? "0"))],
+                                ["writeOffInterest", formatMoney(String(payload.interest_cents ?? "0"))],
+                                ["writeOffPrincipal", formatMoney(String(payload.principal_cents ?? "0"))],
+                                [
+                                  "writeOffCase",
+                                  payload.case_no === null || payload.case_no === undefined
+                                    ? t("writeOffNoCase")
+                                    : `${String(payload.case_no)} · ${t(`recoveryStages.${String(payload.case_stage) as "opened"}`)}`,
+                                ],
+                              ] as const
+                            ).map(([key, value]) => (
+                              <div key={key}>
+                                <dt className="text-xs font-medium text-ink-muted">{t(key)}</dt>
+                                <dd className="tabular mt-0.5 font-semibold text-ink">{value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                          {row.reason !== null ? (
+                            <p className="text-sm text-ink">
+                              <span className="text-ink-muted">{t("reasonGiven")}: </span>
+                              {row.reason}
+                            </p>
+                          ) : null}
+                          <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
+                            {t(payload.override === true ? "writeOffOverride" : "writeOffNote", {
+                              amount: formatMoney(String(payload.total_cents ?? "0")),
+                            })}
+                          </p>
+                        </div>
+                      ) : null}
+                      {row.type === "day_close" ? (
+                        <div className="grid gap-3">
+                          <dl className="kv">
+                            {(
+                              [
+                                ["dayExpected", formatMoney(String(payload.expected_cents ?? "0"))],
+                                ["dayCounted", formatMoney(String(payload.counted_cents ?? "0"))],
+                                ["dayVariance", formatMoneySigned(String(payload.variance_cents ?? "0"))],
+                              ] as const
+                            ).map(([key, value]) => (
+                              <div key={key}>
+                                <dt className="text-xs font-medium text-ink-muted">{t(key)}</dt>
+                                <dd className="tabular mt-0.5 font-semibold text-ink">{value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                          {row.reason !== null ? (
+                            <p className="text-sm text-ink">
+                              <span className="text-ink-muted">{t("reasonGiven")}: </span>
+                              {row.reason}
+                            </p>
+                          ) : null}
+                          <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
+                            {t("dayLockNote")}
+                          </p>
+                        </div>
+                      ) : null}
+                      {row.type === "expense" ? (
+                        <dl className="kv">
+                          {(
+                            [
+                              [
+                                "expenseDate",
+                                typeof payload.expense_date === "string"
+                                  ? formatDate(payload.expense_date)
+                                  : "",
+                              ],
+                              [
+                                "expenseAccount",
+                                `${String(payload.account ?? "")} · ${String(payload.account_name ?? "")}`,
+                              ],
+                              [
+                                "expensePayee",
+                                typeof payload.payee === "string" ? payload.payee : t("expenseNoPayee"),
+                              ],
+                              [
+                                "expensePaidFrom",
+                                typeof payload.paid_from === "string"
+                                  ? payload.paid_from
+                                  : t("expenseOnCredit"),
+                              ],
+                            ] as const
+                          ).map(([key, value]) => (
+                            <div key={key}>
+                              <dt className="text-xs font-medium text-ink-muted">{t(key)}</dt>
+                              <dd className="mt-0.5 font-semibold break-words text-ink">{value}</dd>
+                            </div>
+                          ))}
+                        </dl>
+                      ) : null}
+                      {row.type === "loan_extension" ? (
+                        <div className="grid gap-3">
+                          <dl className="kv">
+                            <div>
+                              <dt className="text-xs font-medium text-ink-muted">{t("extensionDueNow")}</dt>
+                              <dd className="tabular mt-0.5 font-semibold text-ink">
+                                {typeof payload.old_due_date === "string"
+                                  ? formatDate(payload.old_due_date)
+                                  : ""}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs font-medium text-ink-muted">{t("extensionNewDue")}</dt>
+                              <dd className="tabular mt-0.5 font-semibold text-ink">
+                                {typeof payload.new_due_date === "string"
+                                  ? formatDate(payload.new_due_date)
+                                  : ""}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-xs font-medium text-ink-muted">{t("reasonGiven")}</dt>
+                              <dd className="mt-0.5 font-semibold text-ink">{row.reason ?? ""}</dd>
+                            </div>
+                          </dl>
+                          <p className="rounded-control bg-subtle px-3 py-2 text-sm text-ink">
+                            {t("extensionNote", {
+                              months: Number(payload.extra_months ?? 1),
+                              interest: formatMoney(String(payload.extra_interest_cents ?? "0")),
+                              owed: formatMoney(String(payload.owed_after_cents ?? "0")),
+                              due:
+                                typeof payload.new_due_date === "string"
+                                  ? formatDate(payload.new_due_date)
+                                  : "",
+                            })}
+                            {typeof payload.next_penalty_on === "string" && row.status === "pending"
+                              ? ` ${t("extensionNoPenalty", { date: formatDate(payload.next_penalty_on).slice(0, 6) })}`
+                              : ""}
+                          </p>
+                        </div>
+                      ) : null}
+                      {row.type === "journal_reversal" && row.reason !== null ? (
+                        <p className="text-sm text-ink">
+                          <span className="text-ink-muted">{t("reasonGiven")}: </span>
+                          {row.reason}
+                        </p>
+                      ) : null}
+
+                      {row.type === "loan_approval" ? (
+                        <div className="grid gap-3">
+                          <dl className="kv">
+                            {(
+                              [
+                                ["loanAmount", formatMoney(String(payload.principal_cents ?? "0"))],
+                                ["loanInterest", formatMoney(String(payload.interest_cents ?? "0"))],
+                                ["loanTotal", formatMoney(String(payload.total_due_cents ?? "0"))],
+                                [
+                                  "loanTerm",
+                                  payload.repayment_type === "installments"
+                                    ? t("loanInstallmentsValue", {
+                                        count: Number(payload.installment_count ?? 0),
+                                        amount: formatMoney(String(payload.installment_cents ?? "0")),
+                                        product: String(payload.product ?? ""),
+                                      })
+                                    : t("loanTermValue", {
+                                        months: Number(payload.term_months ?? 0),
+                                        product: String(payload.product ?? ""),
+                                      }),
+                                ],
+                              ] as const
+                            ).map(([key, value]) => (
+                              <div key={key} className="min-w-0">
+                                <dt className="text-xs font-medium text-ink-muted">{t(key)}</dt>
+                                <dd className="tabular mt-0.5 font-semibold break-words text-ink">{value}</dd>
+                              </div>
+                            ))}
+                          </dl>
+                          {row.reason !== null ? (
+                            <p className="text-sm text-ink">
+                              <span className="text-ink-muted">{t("purpose")}: </span>
+                              {row.reason}
+                            </p>
+                          ) : null}
+                          {row.required_role === "ceo" ? (
+                            <p className="rounded-control bg-warning-bg px-3 py-2 text-sm text-status-overdue-fg">
+                              {t("aboveLimit", { limit: formatMoney(String(payload.limit_cents ?? "0")) })}
+                            </p>
+                          ) : null}
+                          {typeof payload.loan_id === "string" ? (
+                            <Link href={`/loans/${payload.loan_id}`} className="text-sm font-semibold">
+                              {t("openLoan", { loan: String(payload.loan_no ?? "") })}
+                            </Link>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                    <aside
+                      aria-label={t("requestMeta", { title })}
+                      className="grid content-start gap-3 border-t border-line pt-3 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-6"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-sm lg:grid lg:gap-0.5">
+                        <p className="font-semibold text-ink">{people.get(row.requested_by) ?? ""}</p>
+                        <p className="text-ink-muted">{ageText(row.requested_at)}</p>
+                        {tab === "mine" ? (
+                          <span className="lg:mt-1.5">
+                            <StatusBadge tone={statusTone[row.status] ?? "pending"}>
+                              {t(`status.${row.status as "pending"}`)}
+                            </StatusBadge>
+                          </span>
                         ) : null}
                       </div>
-                    ) : null}
-
-                    {row.status === "pending" && tab === "waiting" ? (
-                      <DecisionForm
-                        requestId={row.id}
-                        title={title}
-                        boardReference={row.type === "write_off"}
-                      />
-                    ) : null}
-                    {row.status !== "pending" && row.decided_at !== null ? (
-                      <p className="text-sm text-ink-muted">
-                        {t(row.status === "approved" ? "decidedApproved" : "decidedRejected", {
-                          name: row.decided_by === null ? "" : (people.get(row.decided_by) ?? ""),
-                          when: ageText(row.decided_at),
-                        })}
-                        {row.decision_note !== null ? ` · ${row.decision_note}` : ""}
-                      </p>
-                    ) : null}
+                      {row.status === "pending" && tab === "waiting" ? (
+                        <DecisionForm
+                          requestId={row.id}
+                          title={title}
+                          boardReference={row.type === "write_off"}
+                        />
+                      ) : null}
+                      {row.status !== "pending" && row.decided_at !== null ? (
+                        <p className="text-sm text-ink-muted">
+                          {t(row.status === "approved" ? "decidedApproved" : "decidedRejected", {
+                            name: row.decided_by === null ? "" : (people.get(row.decided_by) ?? ""),
+                            when: ageText(row.decided_at),
+                          })}
+                          {row.decision_note !== null ? ` · ${row.decision_note}` : ""}
+                        </p>
+                      ) : null}
+                    </aside>
                   </article>
                 </li>
               );
@@ -665,7 +686,12 @@ async function ApprovalsContent({ searchParams }: { searchParams: PageProps<"/ap
           </nav>
         ) : null}
 
-        {decides ? <p className="text-sm text-ink-muted">{t("footer")}</p> : null}
+        {decides ? (
+          <p className="flex items-start gap-2.5 rounded-control bg-surface px-4 py-3 text-sm text-ink-muted ring-1 ring-line">
+            <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+            {t("footer")}
+          </p>
+        ) : null}
       </div>
     </>
   );
