@@ -48,7 +48,7 @@ export function BottomNav({
 
   const tabClass = (active: boolean) =>
     cn(
-      "flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-control text-xs font-semibold transition-colors duration-150 ease-out",
+      "flex min-h-14 min-w-0 flex-1 basis-0 flex-col items-center justify-center gap-1 rounded-control text-xs font-semibold transition-colors duration-150 ease-out",
       active ? "text-primary" : "text-ink-muted hover:text-ink",
     );
 
@@ -64,17 +64,21 @@ export function BottomNav({
             key={item.key}
             href={item.href}
             aria-current={active ? "page" : undefined}
+            // The full name stays the link's name for screen readers when the tab shows a short one.
+            aria-label={item.shortLabel === undefined ? undefined : item.label}
             className={tabClass(active)}
           >
             <NavItemIcon name={item.key} className="size-5.5" />
-            {item.label}
+            <span className="max-w-full truncate px-0.5 whitespace-nowrap">
+              {item.shortLabel ?? item.label}
+            </span>
           </Link>
         );
       })}
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger className={tabClass(false)}>
           <Menu aria-hidden="true" className="size-5.5" />
-          {labels.more}
+          <span className="max-w-full truncate px-0.5 whitespace-nowrap">{labels.more}</span>
         </SheetTrigger>
         <SheetContent
           side="bottom"

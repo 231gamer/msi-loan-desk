@@ -1,7 +1,7 @@
 import { expect, test, type Locator } from "@playwright/test";
 
 import { fixtureUser } from "./fixtures";
-import { expectNoHorizontalScroll, expectNoSeriousA11yIssues, signIn } from "./helpers";
+import { expectNoHorizontalScroll, expectNoSeriousA11yIssues, signIn, signInAs } from "./helpers";
 
 test.describe("app shell (SPEC 9 layout, mock-ups 05-15 and 01-03)", () => {
   test.beforeEach(async ({ page }) => {
@@ -138,5 +138,26 @@ test.describe("app shell (SPEC 9 layout, mock-ups 05-15 and 01-03)", () => {
     const skip = page.getByRole("link", { name: "Skip to main content" });
     await expect(skip).toBeFocused();
     await expect(skip).toBeVisible();
+  });
+});
+
+test.describe("phone tab bar labels", () => {
+  test("long page names get a short one-line tab label; the full name stays for screen readers", async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(!isMobile, "phone layout");
+    await signInAs(page, fixtureUser("admin"));
+    await page.setViewportSize({ width: 360, height: 780 });
+    const tabs = page.getByRole("navigation", { name: "Main" });
+    const due = tabs.getByRole("link", { name: "Due and overdue" });
+    await expect(due).toHaveText("Due");
+    // Every tab label sits on one line: as tall as the shortest label.
+    const heights = await tabs
+      .locator("a > span, button > span")
+      .evaluateAll((spans) => spans.map((span) => span.getBoundingClientRect().height));
+    expect(Math.max(...heights)).toBeLessThanOrEqual(Math.min(...heights) + 1);
+    await tabs.getByRole("button", { name: "More" }).click();
+    await expect(page.getByRole("dialog").getByRole("link", { name: "Due and overdue" })).toBeVisible();
   });
 });

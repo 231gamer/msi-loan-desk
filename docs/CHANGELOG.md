@@ -19,6 +19,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 - Tooltips on hover and keyboard focus: every menu item (name and a one-line description), the collapse and sign-out buttons, the Approvals button, the change-password key and the dashboard buttons.
 - Loading states: action buttons show a spinner (and stay disabled) while the server works; search and filter buttons and sign-out turn busy until the next page arrives; menu items and button-style links show a spinner while their page loads.
 ### Changed
+- Phone tab bar: "Due and overdue" shows as "Due" (the More sheet and screen readers keep the full name), and tab labels never wrap onto a second line.
 - Desktop top bar: the signed-in user (initials, name, role) and the change-password key moved from the bottom of the sidebar to the top bar's right end. The sidebar foot holds "Collapse menu" and "Sign out" (mock-up version A, approved by Foday).
 - Dashboard "Due and overdue now" (manager, CEO) and "My due and overdue loans" (officer): on phones each loan is a card with customer, amount owed, loan number, branch, due date and status, so nothing is hidden off-screen. From 768px the table stays; loan numbers, dates, amounts and statuses no longer break across lines.
 

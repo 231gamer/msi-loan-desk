@@ -20,6 +20,8 @@ export async function AppBottomNav() {
     key: item.key,
     href: item.href,
     label: tNav(item.key),
+    // Phone tabs are narrow: a long name has a short tab label (the More sheet keeps the full one).
+    shortLabel: tNav(`tab.${item.key}`) === tNav(item.key) ? undefined : tNav(`tab.${item.key}`),
     badge:
       item.key === "approvals" && waiting > 0
         ? { count: waiting, label: tNav("waiting", { count: waiting }) }
