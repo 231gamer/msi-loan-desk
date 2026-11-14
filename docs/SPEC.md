@@ -793,3 +793,41 @@ Defects found in review and fixed in this version:
 10. **Invoices** (requested originally) are not part of lending; replaced by agreement, statement and demand notice, stated in 1.3.
 
 Known risks that the spec cannot remove (client decisions): the compounding penalty (A-06) more than doubles a month of default debt and must be checked against the pending CBL licence terms and by a lawyer; legal wording in agreements and notices is placeholder text.
+
+---
+
+## Addendum A. Installment loans (agreed with MSI, approved by Foday 2026-11-14)
+
+Some borrowers repay in equal monthly installments instead of one payment at the end. This addendum adds a product type; it changes nothing for one-payment products ("Standard 1-month") or for any existing loan.
+
+### A.1 Rules
+
+1. **Interest is charged once:** `interest = principal × rate_bps / 10000` (`loan_interest(..., 'once')`), charged once at payout (R1 unchanged), whatever the number of months. One-payment products keep `principal × rate × months` (`per_month`).
+2. **Equal monthly installments:** n = term in months (product `min_term_months`..`max_term_months`; seeded product 2 to 6). Each installment = `floor(total / n)` cents; the last takes the remainder, so they add up exactly to the total (`installment_schedule`). Installment k falls due k months after payout (`add_months_clamped` from the payout day: 31 Jan gives 28 Feb, 31 Mar, 30 Apr, 31 May). The loan's `due_date` is the last installment's date.
+3. **Within the term nothing extra is charged.** A late or short installment makes the loan "behind schedule" (shown and followed up), not "overdue".
+4. **Default = past the final due date with money owed.** From then on the existing rules apply unchanged, counted from the final due date: overdue status, a penalty of `penalty_rate_bps` of everything still owed every `penalty_period_days` (at most `penalty_max_periods`), recovery eligible after `recovery_after_days`.
+5. **Payments as today:** any amount at any time, allocated penalty → interest → principal, no overpayment; early repayment allowed with no interest discount.
+6. **Installment status comes from the ledger only:** installments are covered, oldest first, by what has been paid toward principal and interest (scheduled total − principal and interest still owed in `journal_lines`). Penalty payments clear penalties, not installments, so the schedule always agrees with the Outstanding card. Statuses: paid, part paid, due (next), behind (date passed, something left), not yet due. Nothing about "paid" is stored.
+7. **Not in this version:** loan extensions (refused in SQL, button hidden); repayment frequencies other than monthly.
+
+### A.2 Data
+
+- `loan_products`: `repayment_type` (`single` | `installments`), `interest_basis` (`per_month` | `once`), `min_term_months`. Allowed pairs: single + per_month, installments + once (at least 2 months).
+- `loans` (snapshot at submission): `repayment_type`, `interest_basis`, `installment_count` (= term months for installments, null otherwise).
+- `loan_installments` (loan_id, installment_no, due_date, amount_cents): written when the loan is paid out, immutable, read-only for staff.
+- Functions: `loan_installment_rows(loan)`, `loan_schedule_rows()` / view `loan_schedule_status` (next installment, arrears, days behind, amount due now), `receipt_next_installment(payment)`, `loan_document_schedule(loan)`; `due_list` gains `repayment_type`, `amount_due_cents`, `installment_no` and the bucket `behind`.
+
+### A.3 Screens and documents
+
+Wizard: schedule and total on the amount step and "Check and send". Loan page: "Repayment schedule" card; Outstanding shows the next installment and any arrears. Due and overdue, Today, dashboard and the Due report show the installment due (and a "Behind schedule" group) for installment loans inside their term; after the final due date they are ordinary overdue loans. WhatsApp: `templates.reminder_installment`. Payment form: the installment due is suggested; any amount can be entered. Receipt: "Next installment: $600.00 due 15 Mar 2026". Statement: the schedule with statuses. Agreement: the schedule and `templates.loan_agreement_installments` (interest once; no penalty or extra interest within the term; penalties only after the final due date).
+
+### A.4 Test vectors (`tools/vectors.py`, pgTAP 38 to 40)
+
+| Loan | Interest | Total | Installments |
+| --- | --- | --- | --- |
+| $2,000, 4 months, 20% | $400.00 | $2,400.00 | 4 × $600.00 |
+| $1,500, 3 months, 20% | $300.00 | $1,800.00 | 3 × $600.00 |
+| $1,000, 7 months, 20% | $200.00 | $1,200.00 | 6 × $171.42, then $171.48 |
+| $750, 2 months, 20% | $150.00 | $900.00 | 2 × $450.00 |
+
+Default example: $2,000 over 4 months paid out 15 Jan 2026, due 15 Feb, 15 Mar, 15 Apr, 15 May; $1,800 paid by 15 May leaves $600.00 of principal. 16 May: overdue. Penalties $120.00 (22 May), $144.00, $172.80, $207.36 (owed $1,244.16). Recovery eligible from 14 Jun (final due date + 30).
