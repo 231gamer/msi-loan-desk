@@ -185,6 +185,12 @@
       "never": "Not run yet",
       "users": "Active users",
       "branches": "{count, plural, one {# branch} other {# branches}}"
+    },
+    "tips": {
+      "openList": "All due and overdue loans, with WhatsApp reminders",
+      "receive": "Take a payment at the counter and print the receipt",
+      "confirmField": "Confirm cash handed over by loan officers",
+      "closeDay": "Count the drawer and close the day"
     }
   },
   "nav": {
@@ -208,7 +214,25 @@
     "ledger": "Ledger",
     "audit": "Audit log",
     "settings": "Settings",
-    "waiting": "{count, plural, one {# request waiting} other {# requests waiting}}"
+    "waiting": "{count, plural, one {# request waiting} other {# requests waiting}}",
+    "hints": {
+      "dashboard": "Today's figures and what needs attention",
+      "field": "Your collection round for today",
+      "customers": "Find, register and update borrowers",
+      "loans": "Applications, active loans and their history",
+      "payments": "Receive payments and look up receipts",
+      "remittance": "Confirm cash handed over by loan officers",
+      "due": "Loans due soon and overdue, with reminders",
+      "collateral": "Items held as security: custody and release",
+      "recovery": "Recovery cases: notices, court steps and sales",
+      "approvals": "Requests waiting for a decision",
+      "dayClose": "Count the drawer and close the day",
+      "expenses": "Record, approve and settle money out",
+      "reports": "Collections, overdue, profit and loss and more",
+      "ledger": "Journals, trial balance and manual entries",
+      "audit": "Who changed what, and when",
+      "settings": "Company, branches, users, products and rules"
+    }
   },
   "shell": {
     "product": "Loan management",
@@ -219,7 +243,15 @@
     "skipToContent": "Skip to main content",
     "account": "Signed in as {name}, {role}",
     "approvals": "Approvals",
-    "approvalsWaiting": "{count, plural, one {# request waiting for you} other {# requests waiting for you}}"
+    "approvalsWaiting": "{count, plural, one {# request waiting for you} other {# requests waiting for you}}",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
+    "collapseHint": "Show icons only, to give pages more room",
+    "expandHint": "Show the menu with its labels",
+    "signOutHint": "End your session on this device",
+    "changePasswordHint": "Change the password you sign in with",
+    "approvalsHint": "Open the approvals inbox",
+    "you": "Signed in as {name}"
   },
   "errors": {
     "FORBIDDEN": "You are not allowed to do this.",

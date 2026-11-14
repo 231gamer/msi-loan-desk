@@ -5,6 +5,9 @@ import { canAccess, type Role, type RouteKey } from "@/lib/permissions";
  * page exists (`built`) and the role may open it (src/lib/permissions.ts), so nobody sees links to
  * pages they cannot use or that are not built yet. Flip `built` in the block that delivers a page.
  */
+/** Cookie that remembers a collapsed desktop sidebar (read on the server, so the page does not jump). */
+export const SIDEBAR_COOKIE = "ld-sidebar";
+
 export type NavIcon =
   | "dashboard"
   | "field"

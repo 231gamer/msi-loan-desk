@@ -13,10 +13,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { SubmitButton } from "@/components/ui/pending";
 import { isActive } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
-import { NavIcon } from "./nav-icon";
+import { NavItemIcon } from "./nav-icon";
 import { CountBadge, type NavLinkItem } from "./sidebar-nav";
 
 const MAX_TABS = 4;
@@ -65,7 +66,7 @@ export function BottomNav({
             aria-current={active ? "page" : undefined}
             className={tabClass(active)}
           >
-            <NavIcon name={item.key} className="size-5.5" />
+            <NavItemIcon name={item.key} className="size-5.5" />
             {item.label}
           </Link>
         );
@@ -98,7 +99,7 @@ export function BottomNav({
                       active ? "bg-primary-tint text-primary-dark" : "text-ink hover:bg-page",
                     )}
                   >
-                    <NavIcon name={item.key} className="size-5" />
+                    <NavItemIcon name={item.key} className="size-5" />
                     <span className="flex-1">{item.label}</span>
                     <CountBadge badge={item.badge} />
                   </Link>
@@ -117,13 +118,10 @@ export function BottomNav({
             </Link>
           </div>
           <form action="/auth/sign-out" method="post" className="mx-3">
-            <button
-              type="submit"
-              className="flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-sm font-semibold text-ink hover:bg-page"
-            >
-              <LogOut aria-hidden="true" className="size-5" />
+            <SubmitButton className="flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-sm font-semibold text-ink hover:bg-page">
+              <LogOut aria-hidden="true" data-busy-hide="" className="size-5" />
               {labels.signOut}
-            </button>
+            </SubmitButton>
           </form>
         </SheetContent>
       </Sheet>

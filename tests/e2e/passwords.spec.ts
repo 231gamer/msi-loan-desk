@@ -158,7 +158,7 @@ test.describe("temporary passwords (FR-01, SPEC 11)", () => {
       await other.getByRole("button", { name: "More" }).click();
       await other.getByRole("dialog").getByRole("link", { name: "Change password" }).click();
     } else {
-      await other.getByRole("complementary").getByRole("link", { name: "Change password" }).click();
+      await other.getByTestId("top-bar-user").getByRole("link", { name: "Change password" }).click();
     }
     await expect(other.getByRole("heading", { level: 1, name: "Change password" })).toBeVisible();
     await expectNoSeriousA11yIssues(other);

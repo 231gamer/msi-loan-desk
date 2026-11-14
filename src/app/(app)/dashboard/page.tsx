@@ -24,6 +24,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { LoanPillText } from "../loans/loan-pill";
+import { LinkPending } from "@/components/ui/pending";
+import { Tooltip } from "@/components/ui/tooltip";
 
 /*
  * /dashboard (all staff; SPEC 9 /dashboard; FR-29; mock-up 05). One read (dashboard_data) gives
@@ -217,9 +219,15 @@ async function DashboardContent({ searchParams }: { searchParams: PageProps<"/da
       </>
     );
   const openList = (
-    <Link href="/due" className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}>
-      {t("openList")}
-    </Link>
+    <Tooltip content={t("tips.openList")} align="end">
+      <Link
+        href="/due"
+        className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
+      >
+        <LinkPending />
+        {t("openList")}
+      </Link>
+    </Tooltip>
   );
 
   const attention = (items: Json[]) => (
@@ -343,18 +351,33 @@ async function DashboardContent({ searchParams }: { searchParams: PageProps<"/da
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          <Link
-            href="/payments/new"
-            className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
-          >
-            {t("cashier.receive")}
-          </Link>
-          <Link href="/remittance" className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}>
-            {t("cashier.confirmField")}
-          </Link>
-          <Link href="/day-close" className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}>
-            {t("cashier.closeDay")}
-          </Link>
+          <Tooltip content={t("tips.receive")}>
+            <Link
+              href="/payments/new"
+              className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
+            >
+              <LinkPending />
+              {t("cashier.receive")}
+            </Link>
+          </Tooltip>
+          <Tooltip content={t("tips.confirmField")}>
+            <Link
+              href="/remittance"
+              className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}
+            >
+              <LinkPending />
+              {t("cashier.confirmField")}
+            </Link>
+          </Tooltip>
+          <Tooltip content={t("tips.closeDay")}>
+            <Link
+              href="/day-close"
+              className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}
+            >
+              <LinkPending />
+              {t("cashier.closeDay")}
+            </Link>
+          </Tooltip>
         </div>
         {data.yesterday_closed === false ? (
           <Callout tone="warning">{t("cashier.yesterdayOpen")}</Callout>
