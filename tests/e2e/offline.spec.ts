@@ -225,6 +225,23 @@ test.describe("installable app and offline field cash (SPEC addendum B)", () => 
     await context.clearCookies();
     await context.setOffline(false);
     await page.goto("/login");
+    // The sign-in page clears the list in the background; wait until it has.
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            new Promise<number>((resolve) => {
+              const open = indexedDB.open("loandesk-offline", 1);
+              open.onsuccess = () => {
+                const count = open.result.transaction("snapshots").objectStore("snapshots").count();
+                count.onsuccess = () => resolve(count.result);
+                count.onerror = () => resolve(-1);
+              };
+              open.onerror = () => resolve(-1);
+            }),
+        ),
+      )
+      .toBe(0);
     await context.setOffline(true);
     await page.goto("/offline/field").catch(() => undefined);
     await expect(page.getByText(/No saved list on this phone/)).toBeVisible();

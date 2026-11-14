@@ -85,6 +85,8 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("message", (event) => {
+  // Only this site's own pages can reach a service worker; check anyway.
+  if (event.origin !== self.location.origin) return;
   const type = event.data && event.data.type;
   if (type === "sync") event.waitUntil(sendQueue());
   if (type === "refresh") event.waitUntil(refreshOfflinePages().catch(() => undefined));
