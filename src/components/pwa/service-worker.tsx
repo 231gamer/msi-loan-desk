@@ -2,14 +2,19 @@
 
 import { useEffect } from "react";
 
+import { captureInstallPrompt } from "./install";
+
 const REFRESH_EVERY_MS = 30 * 60 * 1000;
 
 /*
- * Registers public/sw.js (SPEC addendum B) in production builds. While online, it also asks the
+ * Registers public/sw.js (SPEC addendum B) in production builds and catches Chrome's install
+ * prompt for the More menu's "Install app". While online, it also asks the
  * service worker to refresh its copy of the offline pages now and then, so after a deploy the
  * offline screens match the app. Development builds never register it (no stale caches there).
  */
 export function ServiceWorker() {
+  useEffect(() => captureInstallPrompt(), []);
+
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
     navigator.serviceWorker
