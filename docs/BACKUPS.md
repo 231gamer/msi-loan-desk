@@ -18,6 +18,9 @@ If a night fails, GitHub emails the person who last changed the workflow file.
 
 ## One-time setup (about 30 minutes)
 
+For a slower, beginner-friendly walk-through of steps 2 to 4 (Cloudflare, Supabase, GitHub), see
+`docs/BACKUP-SETUP-GUIDE.md`.
+
 ### 1. The two unlock keys (Foday and the CEO, each on their own computer)
 
 A backup can only be opened with one of these keys. **If both are lost, no backup can ever be restored.**
