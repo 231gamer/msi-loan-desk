@@ -17,6 +17,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { LoanPillText } from "./loan-pill";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /loans (all staff; SPEC 9, mock-up 06): status tabs, search by loan number or customer, branch
@@ -162,6 +163,7 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
   const canCreate = canAccess(staff.role, "/loans/new");
   const newButton = canCreate ? (
     <Link href="/loans/new" className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}>
+      <LinkPending />
       {t("new")}
     </Link>
   ) : null;
@@ -241,6 +243,7 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
                 {t("filters.apply")}
               </button>
               <Link href="/loans" className={cn(buttonVariants({ variant: "ghost" }), "hover:text-ink")}>
+                <LinkPending />
                 {t("filters.clear")}
               </Link>
             </div>
@@ -380,6 +383,7 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
                     href={href({ page: String(page - 1) })}
                     className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                   >
+                    <LinkPending />
                     {t("previous")}
                   </Link>
                 ) : null}
@@ -388,6 +392,7 @@ async function LoansContent({ searchParams }: { searchParams: PageProps<"/loans"
                     href={href({ page: String(page + 1) })}
                     className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                   >
+                    <LinkPending />
                     {t("next")}
                   </Link>
                 ) : null}

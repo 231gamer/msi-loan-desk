@@ -16,6 +16,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { COLLATERAL_TYPES } from "../loans/schemas";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /collateral (all staff; SPEC 9, 5.9, mock-up 09): the register with tabs (held, in recovery, ready
@@ -183,6 +184,7 @@ async function CollateralContent({ searchParams }: PageProps<"/collateral">) {
               href="/collateral/new"
               className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
             >
+              <LinkPending />
               {t("register")}
             </Link>
           ) : null}
@@ -226,6 +228,7 @@ async function CollateralContent({ searchParams }: PageProps<"/collateral">) {
                 {t("filters.apply")}
               </button>
               <Link href="/collateral" className={cn(buttonVariants({ variant: "ghost" }), "hover:text-ink")}>
+                <LinkPending />
                 {t("filters.clear")}
               </Link>
             </div>

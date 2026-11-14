@@ -223,7 +223,7 @@ function ProductForm({ product, onDone }: { product: ProductRow | null; onDone: 
       <CheckboxRow id="product-active" label={t("fields.active")} {...form.register("active")} />
       <StatusMessage status={status} />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button aria-busy={pending} type="submit" disabled={pending}>
           {pending ? tSettings("saving") : tSettings("save")}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>

@@ -342,7 +342,7 @@ function RequireNewPasswordForm({
       </Field>
       <StatusMessage status={status} />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button aria-busy={pending} type="submit" disabled={pending}>
           {pending
             ? t("saving")
             : target.mode === "one"
@@ -474,7 +474,7 @@ function NewUserForm({
       <UserFields form={form} branches={branches} withEmail />
       <StatusMessage status={status} />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button aria-busy={pending} type="submit" disabled={pending}>
           {pending ? t("saving") : t("users.create")}
         </Button>
         <Button type="button" variant="ghost" onClick={onCancel}>
@@ -534,7 +534,7 @@ function EditUserForm({
       />
       <StatusMessage status={status} />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button aria-busy={pending} type="submit" disabled={pending}>
           {pending ? t("saving") : t("save")}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>

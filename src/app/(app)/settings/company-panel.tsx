@@ -83,7 +83,7 @@ function CompanyForm({ company }: { company: CompanyValues }) {
         {text("receiptFooter", t("company.receiptFooter"))}
         <StatusMessage status={status} />
         <div>
-          <Button type="submit" disabled={pending}>
+          <Button aria-busy={pending} type="submit" disabled={pending}>
             {pending ? t("saving") : t("save")}
           </Button>
         </div>
@@ -141,7 +141,7 @@ function LogoForm({ logoUrl, companyName }: { logoUrl: string | null; companyNam
           </Field>
           <StatusMessage status={status} />
           <div>
-            <Button type="submit" variant="secondary" disabled={pending}>
+            <Button aria-busy={pending} type="submit" variant="secondary" disabled={pending}>
               {pending ? t("company.logoUploading") : t("company.logoUpload")}
             </Button>
           </div>
@@ -196,7 +196,7 @@ function TemplatesForm({ templates }: { templates: TemplatesValues }) {
         {area("reminderOverdue", t("company.reminderOverdue"))}
         <StatusMessage status={status} />
         <div>
-          <Button type="submit" disabled={pending}>
+          <Button aria-busy={pending} type="submit" disabled={pending}>
             {pending ? t("saving") : t("save")}
           </Button>
         </div>

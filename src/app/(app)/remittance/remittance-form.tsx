@@ -150,7 +150,7 @@ export function RemittanceForm({ groups }: { groups: CollectorGroup[] }) {
             {...describedBy("remittance-counted", undefined, countError ? t("countedRequired") : undefined)}
           />
         </Field>
-        <Button type="submit" disabled={pending || selected.size === 0}>
+        <Button aria-busy={pending} type="submit" disabled={pending || selected.size === 0}>
           {pending ? t("confirming") : t("confirm")}
         </Button>
       </div>

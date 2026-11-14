@@ -103,7 +103,7 @@ export function PayeeForm({ payee }: { payee: (PayeeValues & { id: string }) | n
       ) : null}
       {status?.tone === "error" ? <FormMessage tone="error">{tErrors(status.code)}</FormMessage> : null}
       <div className="flex gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button aria-busy={pending} type="submit" disabled={pending}>
           {pending ? t("saving") : t("save")}
         </Button>
         {payee !== null ? (

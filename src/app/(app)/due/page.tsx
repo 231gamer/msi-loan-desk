@@ -15,6 +15,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { PrintListButton, RunJobButton } from "./run-job";
+import { SubmitButton } from "@/components/ui/pending";
 
 /*
  * /due (all staff; SPEC 9, 10.3, mock-up 11; FR-13): loans due today, due within the window
@@ -245,9 +246,9 @@ async function DueContent({ searchParams }: PageProps<"/due">) {
                     ))}
                 </select>
               </Field>
-              <button type="submit" className={buttonVariants({ variant: "secondary" })}>
+              <SubmitButton className={buttonVariants({ variant: "secondary" })}>
                 {t("filters.apply")}
-              </button>
+              </SubmitButton>
             </form>
           </div>
 

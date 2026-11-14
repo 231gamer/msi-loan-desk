@@ -16,6 +16,7 @@ import { zodResolver } from "@/lib/zod-resolver";
 
 import { previewPayment, receivePayment, recordFieldPayment, type PreviewResult } from "./actions";
 import { FIELD_METHODS, PAYMENT_METHODS, paymentSchema, type PaymentValues } from "./schemas";
+import { LinkPending } from "@/components/ui/pending";
 
 type Preview = Extract<PreviewResult, { ok: true }>;
 
@@ -219,10 +220,11 @@ export function PaymentForm({
       <div className={cn("grid gap-3", cancelHref !== undefined && "grid-cols-[1fr_2fr]")}>
         {cancelHref !== undefined ? (
           <Link href={cancelHref} className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}>
+            <LinkPending />
             {t("cancel")}
           </Link>
         ) : null}
-        <Button type="submit" disabled={pending} size={field ? "field" : "default"}>
+        <Button aria-busy={pending} type="submit" disabled={pending} size={field ? "field" : "default"}>
           {pending ? t("saving") : t(field ? "fieldSubmit" : "submit")}
         </Button>
       </div>

@@ -75,5 +75,7 @@ test.describe("due and overdue on the dashboard", () => {
       await expect(row).toContainText("$720.00");
       await expect(row).toContainText("Due today");
     }
+    // The dashboard lists 10 loans; move this one out of today so repeated runs do not crowd it.
+    ownerSql(`update public.loans set due_date = due_date + 30 where id = '${loan.id}'`);
   });
 });

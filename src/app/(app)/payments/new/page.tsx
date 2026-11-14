@@ -14,6 +14,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { PaymentForm } from "../payment-form";
+import { SubmitButton } from "@/components/ui/pending";
 
 /*
  * /payments/new?loan= (cashier, manager; SPEC 9, mock-up 03): find the loan, then amount, method,
@@ -155,9 +156,7 @@ async function NewPaymentContent({ searchParams }: PageProps<"/payments/new">) {
                 placeholder={t("findPlaceholder")}
                 className={inputClass}
               />
-              <button type="submit" className={buttonVariants({ variant: "secondary" })}>
-                {t("search")}
-              </button>
+              <SubmitButton className={buttonVariants({ variant: "secondary" })}>{t("search")}</SubmitButton>
             </div>
           </Field>
         </form>

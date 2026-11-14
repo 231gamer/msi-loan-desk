@@ -18,6 +18,7 @@ import { ID_TYPES } from "../customers/schemas";
 import { DecisionForm } from "./decision-form";
 
 import messages from "../../../../messages/en.json";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /approvals (SPEC 9, mock-up 12; FR-28): one inbox for every maker-checker request. Managers and
@@ -641,6 +642,7 @@ async function ApprovalsContent({ searchParams }: { searchParams: PageProps<"/ap
                   href={pageHref(page - 1)}
                   className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                 >
+                  <LinkPending />
                   {t("previous")}
                 </Link>
               ) : null}
@@ -649,6 +651,7 @@ async function ApprovalsContent({ searchParams }: { searchParams: PageProps<"/ap
                   href={pageHref(page + 1)}
                   className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                 >
+                  <LinkPending />
                   {t("next")}
                 </Link>
               ) : null}

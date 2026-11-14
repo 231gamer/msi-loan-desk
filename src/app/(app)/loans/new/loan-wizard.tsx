@@ -80,6 +80,8 @@ export function LoanWizard({
   const tErrors = useTranslations("errors");
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  // Which of the two review buttons was pressed, so only that one shows the spinner.
+  const [sendingForApproval, setSendingForApproval] = useState(true);
   const [step, setStep] = useState<Step>(initialCustomer === null ? "customer" : "loan");
   const [customer, setCustomer] = useState<WizardCustomer | null>(initialCustomer);
   const [officerId, setOfficerId] = useState(initialCustomer?.assignedOfficerId ?? "");
@@ -189,6 +191,7 @@ export function LoanWizard({
   function send(submit: boolean) {
     if (customer === null) return;
     setError(null);
+    setSendingForApproval(submit);
     startTransition(async () => {
       const guarantors = guarantorForm.getValues("guarantors");
       const docs: ({ storagePath: string; fileName: string } | null)[] = [];
@@ -531,11 +534,22 @@ export function LoanWizard({
           ) : null}
           {step === "review" ? (
             <>
-              <Button type="button" disabled={pending} onClick={() => send(true)}>
-                {pending ? t("sending") : t("submit")}
+              <Button
+                aria-busy={pending && sendingForApproval}
+                type="button"
+                disabled={pending}
+                onClick={() => send(true)}
+              >
+                {pending && sendingForApproval ? t("sending") : t("submit")}
               </Button>
-              <Button type="button" variant="secondary" disabled={pending} onClick={() => send(false)}>
-                {t("saveDraft")}
+              <Button
+                aria-busy={pending && !sendingForApproval}
+                type="button"
+                variant="secondary"
+                disabled={pending}
+                onClick={() => send(false)}
+              >
+                {pending && !sendingForApproval ? t("sending") : t("saveDraft")}
               </Button>
             </>
           ) : (

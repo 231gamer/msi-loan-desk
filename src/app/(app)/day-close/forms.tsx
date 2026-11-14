@@ -93,7 +93,7 @@ export function CountForm({
       {error !== null && error !== "noteRequired" && error !== "countRequired" ? (
         <FormMessage tone="error">{tErrors(error)}</FormMessage>
       ) : null}
-      <Button type="submit" disabled={pending} className="w-full">
+      <Button aria-busy={pending} type="submit" disabled={pending} className="w-full">
         {pending ? t("closing") : t("close")}
       </Button>
       <p className="text-xs leading-5 text-ink-muted">{t("lockNote")}</p>
@@ -145,7 +145,7 @@ export function ReopenForm({ closeId }: { closeId: string }) {
       <p className="text-xs leading-5 text-ink-muted">{t("note")}</p>
       {error !== null ? <FormMessage tone="error">{tErrors(error)}</FormMessage> : null}
       <div className="flex gap-2">
-        <Button type="submit" disabled={pending || reason.trim() === ""}>
+        <Button aria-busy={pending} type="submit" disabled={pending || reason.trim() === ""}>
           {t("confirm")}
         </Button>
         <Button type="button" variant="ghost" onClick={() => setOpen(false)}>

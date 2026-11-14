@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 
@@ -219,7 +220,7 @@ function RulesForm({ rules, currency }: { rules: RulesValues; currency: string }
 
         <StatusMessage status={status} />
         <div>
-          <Button type="submit" disabled={pending}>
+          <Button aria-busy={pending} type="submit" disabled={pending}>
             {pending ? t("saving") : t("save")}
           </Button>
         </div>
@@ -234,10 +235,12 @@ function ClockForm({ now, values }: { now: string; values: ClockValues }) {
   const { status, setStatus, pending, startTransition } = useStatus();
   const form = useForm<ClockValues>({ resolver: zodResolver(clockSchema), defaultValues: values });
   const atError = validation(form.formState.errors.at?.message);
+  const [realTimeAction, setRealTimeAction] = useState(false);
 
   const submit = (useRealTime: boolean) =>
     form.handleSubmit((input) => {
       setStatus(null);
+      setRealTimeAction(useRealTime);
       startTransition(async () => {
         const result = await setClock({ ...input, useRealTime });
         setStatus(result.ok ? { tone: "success" } : { tone: "error", code: result.code });
@@ -262,10 +265,16 @@ function ClockForm({ now, values }: { now: string; values: ClockValues }) {
         <CheckboxRow id="clock-frozen" label={t("rules.clockFrozen")} {...form.register("frozen")} />
         <StatusMessage status={status} />
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={pending}>
+          <Button aria-busy={pending && !realTimeAction} type="submit" disabled={pending}>
             {t("rules.clockSet")}
           </Button>
-          <Button type="button" variant="secondary" disabled={pending} onClick={submit(true)}>
+          <Button
+            aria-busy={pending && realTimeAction}
+            type="button"
+            variant="secondary"
+            disabled={pending}
+            onClick={submit(true)}
+          >
             {t("rules.clockReal")}
           </Button>
         </div>

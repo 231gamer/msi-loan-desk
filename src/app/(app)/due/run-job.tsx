@@ -20,6 +20,7 @@ export function RunJobButton() {
     <div className="grid gap-2">
       <div>
         <Button
+          aria-busy={pending}
           type="button"
           variant="secondary"
           disabled={pending}

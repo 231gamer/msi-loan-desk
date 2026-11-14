@@ -128,7 +128,7 @@ export function PasswordForm({
           {[newError, formError].filter(Boolean).join(" ")}
         </p>
       ) : null}
-      <Button type="submit" disabled={pending} className="mt-1 min-h-11">
+      <Button aria-busy={pending} type="submit" disabled={pending} className="mt-1 min-h-11">
         {pending ? t("saving") : forced ? t("submitForced") : t("submit")}
       </Button>
     </form>

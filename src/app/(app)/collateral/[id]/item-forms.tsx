@@ -167,7 +167,7 @@ export function CustodyEventForm({ collateralId, canValue }: { collateralId: str
       </div>
       <Outcome result={result} success={t("saved")} />
       <div className="flex flex-wrap gap-2">
-        <Button type="submit" disabled={pending}>
+        <Button aria-busy={pending} type="submit" disabled={pending}>
           {pending ? t("saving") : t("save")}
         </Button>
         <Button type="button" variant="ghost" disabled={pending} onClick={() => setOpen(false)}>
@@ -226,6 +226,7 @@ export function ReleaseForm({ collateralId, ownerName }: { collateralId: string;
       <Outcome result={result} success={t("done")} />
       <div className="flex flex-wrap gap-2">
         <Button
+          aria-busy={pending}
           type="button"
           disabled={pending}
           onClick={() =>
@@ -308,7 +309,7 @@ export function AddFilesForm({ collateralId }: { collateralId: string }) {
           onChange={(event) => setFiles(Array.from(event.target.files ?? []).slice(0, 10))}
         />
       </Field>
-      <Button type="submit" variant="secondary" disabled={pending}>
+      <Button aria-busy={pending} type="submit" variant="secondary" disabled={pending}>
         {pending ? t("adding") : t("submit")}
       </Button>
       <div className="sm:col-span-3">

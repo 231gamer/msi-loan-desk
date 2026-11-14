@@ -60,6 +60,7 @@ export function LoginForm({ next }: { next: string }) {
         </p>
       ) : null}
       <button
+        aria-busy={pending}
         type="submit"
         disabled={pending}
         className="mt-2 min-h-11 rounded-control bg-primary px-4 text-sm font-semibold text-white transition-[background-color,transform] duration-150 ease-out hover:bg-primary-dark active:scale-[0.99] disabled:cursor-wait disabled:opacity-70"

@@ -17,6 +17,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
 import { CUSTOMER_STATUSES } from "./schemas";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /customers (all staff; SPEC 9): search by name, phone, ID or code; filter by status, branch and
@@ -99,6 +100,7 @@ async function CustomersContent({ searchParams }: { searchParams: PageProps<"/cu
   const canCreate = canAccess(staff.role, "/customers/new");
   const newButton = canCreate ? (
     <Link href="/customers/new" className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}>
+      <LinkPending />
       {t("new")}
     </Link>
   ) : null;
@@ -173,6 +175,7 @@ async function CustomersContent({ searchParams }: { searchParams: PageProps<"/cu
               {t("filters.apply")}
             </button>
             <Link href="/customers" className={cn(buttonVariants({ variant: "ghost" }), "hover:text-ink")}>
+              <LinkPending />
               {t("filters.clear")}
             </Link>
           </div>
@@ -297,6 +300,7 @@ async function CustomersContent({ searchParams }: { searchParams: PageProps<"/cu
                     href={pageHref(page - 1)}
                     className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                   >
+                    <LinkPending />
                     {t("previous")}
                   </Link>
                 ) : null}
@@ -305,6 +309,7 @@ async function CustomersContent({ searchParams }: { searchParams: PageProps<"/cu
                     href={pageHref(page + 1)}
                     className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "hover:text-ink")}
                   >
+                    <LinkPending />
                     {t("next")}
                   </Link>
                 ) : null}

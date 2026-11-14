@@ -25,6 +25,7 @@ import { ID_TYPES, valuesFromRow } from "../schemas";
 import { LoanPillText } from "../../loans/loan-pill";
 
 import { AddDocumentForm, StatusRequestForm } from "./profile-forms";
+import { LinkPending } from "@/components/ui/pending";
 
 /*
  * /customers/[id] (all staff; SPEC 9, mock-up 08): profile, pending change, documents and
@@ -254,6 +255,7 @@ async function CustomerContent({ params, searchParams }: PageProps<"/customers/[
                 href={`/loans/new?customer=${customer.id}`}
                 className={cn(buttonVariants({ variant: "primary" }), "hover:text-white")}
               >
+                <LinkPending />
                 {t("newLoan")}
               </Link>
             ) : null}
@@ -272,6 +274,7 @@ async function CustomerContent({ params, searchParams }: PageProps<"/customers/[
                 href={`/customers/${customer.id}?edit=1`}
                 className={cn(buttonVariants({ variant: "secondary" }), "hover:text-ink")}
               >
+                <LinkPending />
                 {t("requestEdit")}
               </Link>
             ) : null}
