@@ -2,6 +2,10 @@
 
 All notable changes, one section per phase. Format follows Keep a Changelog.
 
+## [Dashboard improvements] 2026-11-14
+### Changed
+- Dashboard "Due and overdue now" (manager, CEO) and "My due and overdue loans" (officer): on phones each loan is a card with customer, amount owed, loan number, branch, due date and status, so nothing is hidden off-screen. From 768px the table stays; loan numbers, dates, amounts and statuses no longer break across lines.
+
 ## [Hosted setup] 2026-11-09
 ### Added
 - Live at https://www.methodsolutionslr.com: Vercel project `msi-loan-desk`, Supabase project `msi-loandesk` (production, free plan), admin Corex-admin.

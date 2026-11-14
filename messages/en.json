@@ -108,6 +108,7 @@
     "dueTable": "Due and overdue loans",
     "dueEmpty": "Nothing is due or overdue.",
     "openList": "Open full list",
+    "dueOn": "Due {date}",
     "columns": {
       "customer": "Customer",
       "loan": "Loan",
