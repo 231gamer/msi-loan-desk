@@ -26,6 +26,7 @@ import {
   type CollateralOption,
   type CustomerHit,
   type PreviewResult,
+  type ScheduleLine,
 } from "../actions";
 import {
   COLLATERAL_TYPES,
@@ -40,6 +41,8 @@ export interface ProductOption {
   id: string;
   name: string;
   rateBps: number;
+  repaymentType: "single" | "installments";
+  minTermMonths: number;
   defaultTermMonths: number;
   maxTermMonths: number;
 }
@@ -295,7 +298,10 @@ export function LoanWizard({
                 >
                   {products.map((option) => (
                     <option key={option.id} value={option.id}>
-                      {option.name} · {t("productRate", { rate: formatRateBps(option.rateBps) })}
+                      {option.name} ·{" "}
+                      {t(option.repaymentType === "installments" ? "productRateOnce" : "productRate", {
+                        rate: formatRateBps(option.rateBps),
+                      })}
                     </option>
                   ))}
                 </select>
@@ -324,13 +330,16 @@ export function LoanWizard({
                 error={message(termsForm.formState.errors.termMonths?.message)}
               >
                 <select id="loan-term" className={inputClass} {...termsForm.register("termMonths")}>
-                  {Array.from({ length: product?.maxTermMonths ?? 1 }, (_, position) => position + 1).map(
-                    (months) => (
-                      <option key={months} value={String(months)}>
-                        {t("months", { count: months })}
-                      </option>
-                    ),
-                  )}
+                  {Array.from(
+                    { length: (product?.maxTermMonths ?? 1) - (product?.minTermMonths ?? 1) + 1 },
+                    (_, position) => position + (product?.minTermMonths ?? 1),
+                  ).map((months) => (
+                    <option key={months} value={String(months)}>
+                      {product?.repaymentType === "installments"
+                        ? t("installmentsOption", { count: months })
+                        : t("months", { count: months })}
+                    </option>
+                  ))}
                 </select>
               </Field>
               {chooseOfficer ? (
@@ -589,11 +598,19 @@ function PreviewBox({
   if (!preview.ok) {
     return <FormMessage tone="error">{tErrors(preview.code)}</FormMessage>;
   }
-  const rows: Array<[string, ReactNode]> = [
-    [t("interest"), formatMoney(preview.interestCents)],
-    [t("total"), formatMoney(preview.totalCents)],
-    [t("due"), formatDate(preview.dueDate)],
-  ];
+  const schedule = preview.schedule;
+  const rows: Array<[string, ReactNode]> =
+    schedule === null
+      ? [
+          [t("interest"), formatMoney(preview.interestCents)],
+          [t("total"), formatMoney(preview.totalCents)],
+          [t("due"), formatDate(preview.dueDate)],
+        ]
+      : [
+          [t("interestOnce"), formatMoney(preview.interestCents)],
+          [t("total"), formatMoney(preview.totalCents)],
+          [t("monthly"), formatMoney(schedule[0]?.amountCents ?? "0")],
+        ];
   return (
     <div
       aria-live="polite"
@@ -607,9 +624,16 @@ function PreviewBox({
           </div>
         ))}
       </dl>
+      {schedule === null ? null : <ScheduleTable schedule={schedule} totalCents={preview.totalCents} />}
       <p className="text-xs leading-5 text-ink-muted">
-        {t("explain", { rate: formatRateBps(preview.rateBps) })}
-        {preview.firstPenaltyOn !== null && preview.firstPenaltyCents !== null
+        {schedule === null
+          ? t("explain", { rate: formatRateBps(preview.rateBps) })
+          : t("explainInstallments", {
+              rate: formatRateBps(preview.rateBps),
+              count: schedule.length,
+              last: formatDate(preview.dueDate),
+            })}
+        {schedule === null && preview.firstPenaltyOn !== null && preview.firstPenaltyCents !== null
           ? ` ${t("penalty", { amount: formatMoney(preview.firstPenaltyCents), date: formatDate(preview.firstPenaltyOn) })}`
           : ""}
       </p>
@@ -619,6 +643,48 @@ function PreviewBox({
           : t("manager", { limit: formatMoney(managerLimitCents) })}
       </p>
     </div>
+  );
+}
+
+/* The repayment schedule of an installment loan, as preview_loan_terms returns it. */
+function ScheduleTable({ schedule, totalCents }: { schedule: ScheduleLine[]; totalCents: string }) {
+  const t = useTranslations("loans.wizard.preview");
+  return (
+    <table className="w-full border-collapse text-sm" aria-label={t("scheduleLabel")}>
+      <caption className="pb-1.5 text-left text-xs font-semibold text-ink-muted">
+        {t("scheduleHeading")}
+      </caption>
+      <thead className="text-left text-xs text-ink-muted">
+        <tr>
+          <th scope="col" className="py-1.5 pr-3 font-semibold">
+            {t("columns.no")}
+          </th>
+          <th scope="col" className="py-1.5 pr-3 font-semibold">
+            {t("columns.due")}
+          </th>
+          <th scope="col" className="py-1.5 text-right font-semibold">
+            {t("columns.amount")}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {schedule.map((line) => (
+          <tr key={line.installmentNo} className="border-t border-primary-tint">
+            <td className="tabular py-1.5 pr-3">{line.installmentNo}</td>
+            <td className="tabular py-1.5 pr-3 whitespace-nowrap">{formatDate(line.dueDate)}</td>
+            <td className="tabular py-1.5 text-right whitespace-nowrap">{formatMoney(line.amountCents)}</td>
+          </tr>
+        ))}
+      </tbody>
+      <tfoot>
+        <tr className="border-t-2 border-primary-tint font-bold">
+          <th scope="row" colSpan={2} className="py-1.5 pr-3 text-left">
+            {t("total")}
+          </th>
+          <td className="tabular py-1.5 text-right whitespace-nowrap">{formatMoney(totalCents)}</td>
+        </tr>
+      </tfoot>
+    </table>
   );
 }
 

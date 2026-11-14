@@ -13,6 +13,7 @@ import { renderOfficialDocument, type Block } from "@/lib/pdf/document";
 import { errorCodeFrom } from "@/lib/rpc-errors";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { fillTemplate } from "@/lib/template";
+import { installmentStatus } from "@/lib/loans";
 
 /*
  * Builders for the M7 PDFs (SPEC 10.1): statement, demand notice, collateral receipt and release
@@ -156,13 +157,22 @@ export async function statementPdf(request: NextRequest, staff: Staff, id: strin
           .order("loan_no"),
   ]);
   const statements: StatementJson[] = [];
+  // Installment loans also print their schedule with each installment's status today (from SQL).
+  const schedules = new Map<string, Array<Record<string, unknown>>>();
   for (const row of loans ?? []) {
-    const { data } = await supabase.rpc("loan_statement", {
-      p_loan_id: row.id,
-      ...(options.from !== undefined && loan !== null ? { p_from: options.from } : {}),
-      ...(options.to !== undefined ? { p_to: options.to } : {}),
-    });
-    if (data !== null) statements.push(data as unknown as StatementJson);
+    const [{ data }, { data: schedule }] = await Promise.all([
+      supabase.rpc("loan_statement", {
+        p_loan_id: row.id,
+        ...(options.from !== undefined && loan !== null ? { p_from: options.from } : {}),
+        ...(options.to !== undefined ? { p_to: options.to } : {}),
+      }),
+      supabase.rpc("loan_installment_rows", { p_loan_id: row.id }),
+    ]);
+    if (data !== null) {
+      const statement = data as unknown as StatementJson;
+      statements.push(statement);
+      if (schedule !== null && schedule.length > 0) schedules.set(statement.loan_no, schedule);
+    }
   }
 
   const describe = (line: StatementJson["lines"][number]) => {
@@ -254,6 +264,30 @@ export async function statementPdf(request: NextRequest, staff: Staff, id: strin
           : []),
       ],
     });
+    const schedule = schedules.get(statement.loan_no);
+    if (schedule !== undefined) {
+      blocks.push({
+        type: "table",
+        heading: t("scheduleHeading", { loan: statement.loan_no }),
+        // Text columns first, amounts last: a left-aligned word never sits against a right-aligned number.
+        columns: [
+          { label: t("scheduleColumns.no"), width: "8%" },
+          { label: t("scheduleColumns.due"), width: "19%" },
+          { label: t("scheduleColumns.status"), width: "19%" },
+          { label: t("scheduleColumns.amount"), width: "18%", align: "right" },
+          { label: t("scheduleColumns.paid"), width: "18%", align: "right" },
+          { label: t("scheduleColumns.owed"), width: "18%", align: "right" },
+        ],
+        rows: schedule.map((line) => [
+          String(line.installment_no),
+          formatDate(String(line.due_date)),
+          t(`installmentStatus.${installmentStatus(line.status)}`),
+          formatMoney(Number(line.amount_cents)),
+          formatMoney(Number(line.paid_cents)),
+          formatMoney(Number(line.owed_cents)),
+        ]),
+      });
+    }
   }
   if (statements.length > 1) {
     blocks.push({

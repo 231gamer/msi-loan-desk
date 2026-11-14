@@ -31,8 +31,12 @@ async function NewLoanContent({ searchParams }: { searchParams: PageProps<"/loan
   const [productsResult, officersResult, settingsResult, customerResult] = await Promise.all([
     supabase
       .from("loan_products")
-      .select("id, name, interest_rate_bps, default_term_months, max_term_months")
+      .select(
+        "id, name, interest_rate_bps, repayment_type, min_term_months, default_term_months, max_term_months",
+      )
       .eq("active", true)
+      // One-payment products first ("single" sorts after "installments"), so the usual default stays.
+      .order("repayment_type", { ascending: false })
       .order("name"),
     supabase
       .from("profiles")
@@ -92,6 +96,8 @@ async function NewLoanContent({ searchParams }: { searchParams: PageProps<"/loan
               id: product.id,
               name: product.name,
               rateBps: product.interest_rate_bps,
+              repaymentType: product.repayment_type === "installments" ? "installments" : "single",
+              minTermMonths: product.min_term_months,
               defaultTermMonths: product.default_term_months,
               maxTermMonths: product.max_term_months,
             }))}

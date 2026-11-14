@@ -28,6 +28,7 @@ export type CompanyValues = z.infer<typeof companySchema>;
 export const templatesSchema = z.object({
   reminder: required(2000),
   reminderOverdue: required(2000),
+  reminderInstallment: required(2000),
 });
 export type TemplatesValues = z.infer<typeof templatesSchema>;
 
@@ -138,6 +139,9 @@ export const productSchema = z
     id: z.uuid().optional(),
     name: required(80),
     interestRate: percent(10000).refine((value) => parsePercentToBps(value) !== 0, { message: "percent" }),
+    // single: one payment, interest per month; installments: monthly installments, interest once.
+    repaymentType: z.enum(["single", "installments"]),
+    minTermMonths: whole(1, 36),
     defaultTermMonths: whole(1, 36),
     maxTermMonths: whole(1, 36),
     penaltyRate: percent(10000),
@@ -150,5 +154,13 @@ export const productSchema = z
   .refine((value) => Number(value.defaultTermMonths) <= Number(value.maxTermMonths), {
     message: "termOrder",
     path: ["defaultTermMonths"],
+  })
+  .refine((value) => Number(value.minTermMonths) <= Number(value.defaultTermMonths), {
+    message: "minOrder",
+    path: ["minTermMonths"],
+  })
+  .refine((value) => value.repaymentType === "single" || Number(value.minTermMonths) >= 2, {
+    message: "installmentMin",
+    path: ["minTermMonths"],
   });
 export type ProductValues = z.infer<typeof productSchema>;

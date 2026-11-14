@@ -28,6 +28,8 @@ export interface ReceiptFacts {
   collectedInField: boolean;
   /** "post_write_off_recovery" for money taken after a write-off (SPEC 5.8). */
   source: string;
+  /** Installment loans: the next installment once this payment is counted (null when none). */
+  nextInstallment: { installmentNo: number; dueDate: string; amountCents: string } | null;
 }
 
 export type ReceiptResult = { ok: true; receipt: ReceiptFacts } | { ok: false; status: 404 | 403 | 500 };
@@ -45,11 +47,12 @@ export async function loadReceipt(paymentId: string): Promise<ReceiptResult> {
   if (error !== null) return { ok: false, status: 500 };
   if (payment === null) return { ok: false, status: 404 };
 
-  const [documentResult, balanceResult, allocationsResult, receiverResult] = await Promise.all([
+  const [documentResult, balanceResult, allocationsResult, receiverResult, nextResult] = await Promise.all([
     supabase.rpc("issue_document", { p_kind: "receipt", p_entity_id: paymentId }),
     supabase.rpc("receipt_balance_after", { p_payment_id: paymentId }),
     supabase.from("payment_allocations").select("component, amount_cents").eq("payment_id", paymentId),
     supabase.from("profiles").select("full_name").eq("id", payment.received_by).maybeSingle(),
+    supabase.rpc("receipt_next_installment", { p_payment_id: paymentId }),
   ]);
   if (documentResult.error !== null || balanceResult.error !== null || allocationsResult.error !== null) {
     const forbidden = [documentResult.error, balanceResult.error].some((item) => item?.code === "42501");
@@ -57,6 +60,7 @@ export async function loadReceipt(paymentId: string): Promise<ReceiptResult> {
   }
   const document = documentResult.data as { token: string; is_void: boolean };
   const parts = new Map(allocationsResult.data.map((row) => [row.component, String(row.amount_cents)]));
+  const next = nextResult.error === null ? (nextResult.data as Record<string, unknown> | null) : null;
 
   return {
     ok: true,
@@ -83,6 +87,14 @@ export async function loadReceipt(paymentId: string): Promise<ReceiptResult> {
       branch: payment.branches.name,
       collectedInField: payment.collected_in_field,
       source: payment.source,
+      nextInstallment:
+        next === null
+          ? null
+          : {
+              installmentNo: Number(next.installment_no),
+              dueDate: String(next.due_date),
+              amountCents: String(next.amount_cents),
+            },
     },
   };
 }

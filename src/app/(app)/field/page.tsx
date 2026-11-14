@@ -37,7 +37,7 @@ async function FieldContent() {
   const { data: today, error: todayError } = await supabase.rpc("business_today");
   if (todayError !== null) throw new Error("Could not read the business date");
 
-  const [loansResult, cashResult] = await Promise.all([
+  const [loansResult, cashResult, installmentLoansResult] = await Promise.all([
     supabase
       .from("loans")
       .select(
@@ -57,10 +57,33 @@ async function FieldContent() {
       .eq("remittance_status", "pending")
       .eq("status", "posted")
       .order("received_at"),
+    // Installment loans still inside their term: listed when an installment is due today or behind.
+    supabase
+      .from("loans")
+      .select(
+        "id, loan_no, status, principal_cents, due_date, closed_on, customers!inner(type, first_name, last_name, business_name, phone)",
+      )
+      .eq("officer_id", staff.id)
+      .eq("repayment_type", "installments")
+      .eq("status", "active")
+      .gt("due_date", today)
+      .order("loan_no"),
   ]);
-  if (loansResult.error !== null || cashResult.error !== null)
+  if (loansResult.error !== null || cashResult.error !== null || installmentLoansResult.error !== null)
     throw new Error("Could not read the field list");
-  const ids = loansResult.data.map((loan) => loan.id);
+  const installmentIds = installmentLoansResult.data.map((loan) => loan.id);
+  const { data: schedules, error: scheduleError } =
+    installmentIds.length === 0
+      ? { data: [], error: null }
+      : await supabase.from("loan_schedule_status").select("*").in("loan_id", installmentIds);
+  if (scheduleError !== null) throw new Error("Could not read installment schedules");
+  const scheduleByLoan = new Map(
+    schedules.filter((row) => (row.due_now_cents ?? 0) > 0).map((row) => [row.loan_id, row]),
+  );
+  const ids = [
+    ...loansResult.data.map((loan) => loan.id),
+    ...installmentLoansResult.data.filter((loan) => scheduleByLoan.has(loan.id)).map((loan) => loan.id),
+  ];
   const { data: balances, error: balanceError } =
     ids.length === 0
       ? { data: [], error: null }
@@ -70,7 +93,10 @@ async function FieldContent() {
           .in("loan_id", ids);
   if (balanceError !== null) throw new Error("Could not read balances");
   const byLoan = new Map(balances.map((row) => [row.loan_id, row]));
-  const loans = loansResult.data.filter((loan) => BigInt(byLoan.get(loan.id)?.total_out ?? 0) > 0n);
+  const loans = [
+    ...loansResult.data,
+    ...installmentLoansResult.data.filter((loan) => scheduleByLoan.has(loan.id)),
+  ].filter((loan) => BigInt(byLoan.get(loan.id)?.total_out ?? 0) > 0n);
   const outstanding = loans.reduce((sum, loan) => sum + BigInt(byLoan.get(loan.id)?.total_out ?? 0), 0n);
   const cash = cashResult.data;
   const cashTotal = cash.reduce((sum, payment) => sum + BigInt(payment.amount_cents), 0n);
@@ -104,10 +130,13 @@ async function FieldContent() {
               const balance = byLoan.get(loan.id);
               const name = customerName(loan.customers);
               const penalty = BigInt(balance?.penalty_out ?? 0);
+              const schedule = scheduleByLoan.get(loan.id);
+              const behind = schedule !== undefined && (schedule.arrears_cents ?? 0) > 0;
               const pill = loanPill({
-                status: loan.status,
-                dueDate: loan.due_date,
-                daysOverdue: balance?.days_overdue ?? 0,
+                status: behind ? "behind" : loan.status,
+                dueDate: schedule === undefined ? loan.due_date : today,
+                daysOverdue:
+                  schedule === undefined ? (balance?.days_overdue ?? 0) : (schedule.days_behind ?? 0),
                 totalOutCents: BigInt(balance?.total_out ?? 0),
                 closedOn: loan.closed_on,
                 today,
@@ -133,10 +162,19 @@ async function FieldContent() {
                   </div>
                   <div className="flex items-end justify-between gap-3">
                     <p className="text-sm text-ink-muted">
-                      {penalty > 0n ? t("owesWithPenalty", { penalty: formatMoney(penalty) }) : t("owes")}
+                      {schedule !== undefined
+                        ? t("installmentDue", {
+                            number: schedule.next_no ?? 0,
+                            total: formatMoney(balance?.total_out ?? 0),
+                          })
+                        : penalty > 0n
+                          ? t("owesWithPenalty", { penalty: formatMoney(penalty) })
+                          : t("owes")}
                     </p>
                     <p className="tabular text-2xl font-bold text-ink">
-                      {formatMoney(balance?.total_out ?? 0)}
+                      {formatMoney(
+                        schedule !== undefined ? (schedule.due_now_cents ?? 0) : (balance?.total_out ?? 0),
+                      )}
                     </p>
                   </div>
                   <div className="grid grid-cols-[1fr_1fr_1.4fr] gap-2">

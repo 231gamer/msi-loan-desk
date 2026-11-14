@@ -21,6 +21,7 @@ import { LoanPillText } from "../loan-pill";
 
 import { OpenCaseForm, WriteOffForm } from "../../recovery/case-forms";
 import { CancelLoanForm, DisburseForm, ExtendLoanForm, SubmitDraftButton } from "./loan-actions";
+import { RepaymentSchedule } from "./repayment-schedule";
 import { LinkPending } from "@/components/ui/pending";
 
 /*
@@ -72,6 +73,8 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
     extensionSetting,
     caseResult,
     writeOffResult,
+    scheduleResult,
+    scheduleStatusResult,
   ] = await Promise.all([
     supabase
       .from("loans")
@@ -136,6 +139,9 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
       .eq("entity_id", id)
       .eq("status", "pending")
       .maybeSingle(),
+    // Installment loans: the schedule with each installment's status, and the summary (from the ledger).
+    supabase.rpc("loan_installment_rows", { p_loan_id: id }),
+    supabase.from("loan_schedule_status").select("*").eq("loan_id", id).maybeSingle(),
   ]);
   if (
     loanResult.error !== null ||
@@ -219,7 +225,13 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
     owed > 0n &&
     writeOffResult.data === null &&
     (staff.role === "manager" || (staff.role === "accountant" && caseAtDisposal));
+  const installments = loan.repayment_type === "installments";
+  const schedule = scheduleResult.error === null ? scheduleResult.data : [];
+  const scheduleStatus = scheduleStatusResult.data;
+  const behind =
+    scheduleStatus !== null && scheduleStatus.in_term === true && (scheduleStatus.arrears_cents ?? 0) > 0;
   const canExtend =
+    !installments &&
     ["active", "overdue"].includes(loan.status) &&
     extensionSetting.data?.value !== false &&
     pendingExtension === null &&
@@ -231,10 +243,12 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
     if (row.source_type === "disbursement" && row.component === "principal")
       return t("activity.paidOut", { method: methodLabel.toLowerCase() });
     if (row.source_type === "disbursement" && row.component === "interest")
-      return t("activity.interest", {
-        rate: formatRateBps(loan.interest_rate_bps ?? 0),
-        months: loan.term_months,
-      });
+      return loan.repayment_type === "installments"
+        ? t("activity.interestOnce", { rate: formatRateBps(loan.interest_rate_bps ?? 0) })
+        : t("activity.interest", {
+            rate: formatRateBps(loan.interest_rate_bps ?? 0),
+            months: loan.term_months,
+          });
     const component = t(`activity.components.${(row.component ?? "principal") as "principal"}`);
     if (row.source_type === "payment" || row.source_type === "field_payment")
       return t("activity.payment", { component });
@@ -371,10 +385,15 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
             <p className="mt-1 text-sm text-ink-muted">
               {loan.interest_rate_bps === null
                 ? t("cards.interestLater")
-                : t("cards.interestRule", {
-                    rate: formatRateBps(loan.interest_rate_bps),
-                    months: loan.term_months,
-                  })}
+                : installments
+                  ? t("cards.interestOnce", {
+                      rate: formatRateBps(loan.interest_rate_bps),
+                      months: loan.installment_count ?? loan.term_months,
+                    })
+                  : t("cards.interestRule", {
+                      rate: formatRateBps(loan.interest_rate_bps),
+                      months: loan.term_months,
+                    })}
             </p>
           </Card>
           <Card>
@@ -402,7 +421,7 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
             aria-labelledby="outstanding-heading"
             className={cn(
               "rounded-card border p-4 sm:p-6",
-              owed > 0n && (balance?.days_overdue ?? 0) > 0
+              owed > 0n && ((balance?.days_overdue ?? 0) > 0 || behind)
                 ? "border-warning-border bg-warning-bg text-status-overdue-fg"
                 : "border-line bg-surface",
             )}
@@ -426,8 +445,35 @@ async function LoanContent({ params, searchParams }: PageProps<"/loans/[id]">) {
                 })}
               </p>
             ) : null}
+            {installments && scheduleStatus !== null && owed > 0n ? (
+              <div className="mt-2 grid gap-1 text-sm" data-testid="installment-summary">
+                {scheduleStatus.next_no !== null && scheduleStatus.next_due_date !== null ? (
+                  <p className="tabular font-semibold">
+                    {t("nextInstallment", {
+                      amount: formatMoney(scheduleStatus.next_owed_cents ?? 0),
+                      date: formatDate(scheduleStatus.next_due_date),
+                      number: scheduleStatus.next_no,
+                      count: scheduleStatus.installments ?? schedule.length,
+                    })}
+                  </p>
+                ) : null}
+                {behind && scheduleStatus.behind_since !== null ? (
+                  <p className="tabular">
+                    {t("behindSchedule", {
+                      amount: formatMoney(scheduleStatus.arrears_cents ?? 0),
+                      date: formatDate(scheduleStatus.behind_since),
+                      days: scheduleStatus.days_behind ?? 0,
+                    })}
+                  </p>
+                ) : null}
+              </div>
+            ) : installments && disbursed && owed === 0n ? (
+              <p className="mt-1 text-sm">{t("scheduleDone")}</p>
+            ) : null}
           </section>
         ) : null}
+
+        {installments && schedule.length > 0 ? <RepaymentSchedule rows={schedule} /> : null}
 
         <Card>
           <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3 xl:grid-cols-5">

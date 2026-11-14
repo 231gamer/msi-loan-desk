@@ -14,7 +14,9 @@ import { whatsappLink } from "@/lib/whatsapp";
 /*
  * WhatsApp reminder (SPEC 10.3; FR-13): fills settings.templates.reminder (or reminder_overdue once
  * the loan is overdue), logs the tap as loan.reminder_opened and sends the browser to wa.me. The
- * officer presses send in WhatsApp; there is no delivery guarantee.
+ * officer presses send in WhatsApp; there is no delivery guarantee. An installment loan inside its
+ * term gets reminder_installment with the installment due (amount and date, from
+ * loan_schedule_status), not the whole balance; after its final due date it is an overdue loan.
  */
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ loanId: string }> }) {
   const { loanId } = await params;
@@ -28,7 +30,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     supabase
       .from("loans")
       .select(
-        "loan_no, principal_cents, due_date, customers!inner(type, first_name, last_name, business_name, phone), branches!inner(name, phone)",
+        "loan_no, principal_cents, due_date, repayment_type, customers!inner(type, first_name, last_name, business_name, phone), branches!inner(name, phone)",
       )
       .eq("id", loanId)
       .maybeSingle(),
@@ -40,16 +42,26 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     supabase.from("settings").select("value").eq("key", "templates").maybeSingle(),
     getCompany(),
   ]);
+  const { data: schedule } =
+    loan?.repayment_type === "installments"
+      ? await supabase.from("loan_schedule_status").select("*").eq("loan_id", loanId).maybeSingle()
+      : { data: null };
   if (loan === null || loan.due_date === null) return new Response(t("notOpen"), { status: 404 });
   const overdue = (balance?.days_overdue ?? 0) > 0;
-  const kind = overdue ? "reminder_overdue" : "reminder";
+  const installment = schedule !== null && schedule.in_term === true && schedule.next_no !== null && !overdue;
+  const kind = overdue ? "reminder_overdue" : installment ? "reminder_installment" : "reminder";
+  // What to collect for an installment: everything due by today if behind, else the next installment.
+  const installmentCents =
+    (schedule?.due_now_cents ?? 0) > 0 ? (schedule?.due_now_cents ?? 0) : (schedule?.next_owed_cents ?? 0);
+  const installmentDate = schedule?.behind_since ?? schedule?.next_due_date ?? loan.due_date;
   const texts = (templates?.value ?? {}) as Record<string, unknown>;
   const template = typeof texts[kind] === "string" ? texts[kind] : "";
   const text = fillTemplate(template, {
     name: customerName(loan.customers),
     loan_no: loan.loan_no,
-    amount: formatMoney(loan.principal_cents),
-    due_date: formatDate(loan.due_date),
+    amount: formatMoney(installment ? installmentCents : loan.principal_cents),
+    due_date: formatDate(installment ? installmentDate : loan.due_date),
+    installment: installment ? `${schedule?.next_no ?? ""} of ${schedule?.installments ?? ""}` : "",
     outstanding: formatMoney(balance?.total_out ?? 0),
     days_overdue: String(balance?.days_overdue ?? 0),
     penalties: formatMoney(balance?.penalty_out ?? 0),

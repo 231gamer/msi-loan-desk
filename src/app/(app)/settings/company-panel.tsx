@@ -156,7 +156,7 @@ function TemplatesForm({ templates }: { templates: TemplatesValues }) {
   const { status, setStatus, pending, startTransition } = useStatus();
   const form = useForm<TemplatesValues>({ resolver: zodResolver(templatesSchema), defaultValues: templates });
   const placeholders =
-    "{name}, {loan_no}, {amount}, {due_date}, {outstanding}, {days_overdue}, {penalties}, {branch}, {branch_phone}, {company}";
+    "{name}, {loan_no}, {amount}, {due_date}, {outstanding}, {days_overdue}, {penalties}, {installment}, {branch}, {branch_phone}, {company}";
 
   const validation = useValidationText();
   const area = (name: keyof TemplatesValues, label: string) => {
@@ -194,6 +194,7 @@ function TemplatesForm({ templates }: { templates: TemplatesValues }) {
       >
         {area("reminder", t("company.reminder"))}
         {area("reminderOverdue", t("company.reminderOverdue"))}
+        {area("reminderInstallment", t("company.reminderInstallment"))}
         <StatusMessage status={status} />
         <div>
           <Button aria-busy={pending} type="submit" disabled={pending}>

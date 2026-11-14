@@ -22,6 +22,7 @@ export type ReceiptLabels = Record<
   | "interest"
   | "principal"
   | "balanceAfter"
+  | "nextInstallment"
   | "receivedBy"
   | "authorized"
   | "sumOf"
@@ -45,6 +46,8 @@ export interface ReceiptPdfData {
   purpose: string;
   allocation: { penalty: string; interest: string; principal: string };
   balanceAfter: string;
+  /** Installment loans: "$600.00 due 15 Mar 2026" (null for one-payment loans or when none is left). */
+  nextInstallment: string | null;
   receivedBy: string;
   isVoid: boolean;
   qrDataUrl: string;
@@ -198,6 +201,12 @@ function ReceiptDocument({ data }: { data: ReceiptPdfData }) {
             <Text style={s.strong}>{l.balanceAfter}</Text>
             <Text style={s.strong}>{data.balanceAfter}</Text>
           </View>
+          {data.nextInstallment === null ? null : (
+            <View style={s.row}>
+              <Text>{l.nextInstallment}</Text>
+              <Text style={s.strong}>{data.nextInstallment}</Text>
+            </View>
+          )}
         </View>
         <View style={s.signatures}>
           <View style={s.signature}>

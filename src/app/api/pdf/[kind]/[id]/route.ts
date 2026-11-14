@@ -60,32 +60,42 @@ export async function GET(
   }
   const doc = document as { number: string; token: string; generated_at: string; generated_by: string };
 
-  const [loanResult, pledgesResult, guarantorsResult, templatesResult, peopleResult, company, t] =
-    await Promise.all([
-      supabase
-        .from("loans")
-        .select(
-          "*, customers!inner(code, type, first_name, last_name, business_name, phone, address, city, id_type, id_number), loan_products!inner(name), branches!inner(name)",
-        )
-        .eq("id", id)
-        .single(),
-      supabase
-        .from("loan_collaterals")
-        .select(
-          "collaterals!inner(code, description, serial_no, plate_no, chassis_no, document_no, estimated_value_cents)",
-        )
-        .eq("loan_id", id)
-        .in("status", ["pledged", "seized"]),
-      supabase
-        .from("guarantors")
-        .select("full_name, phone, relationship, id_type, id_number")
-        .eq("loan_id", id)
-        .order("created_at"),
-      supabase.from("settings").select("value").eq("key", "templates").single(),
-      supabase.from("profiles").select("id, full_name"),
-      getCompany(),
-      getTranslations("pdf.agreement"),
-    ]);
+  const [
+    loanResult,
+    pledgesResult,
+    guarantorsResult,
+    templatesResult,
+    peopleResult,
+    company,
+    t,
+    scheduleResult,
+  ] = await Promise.all([
+    supabase
+      .from("loans")
+      .select(
+        "*, customers!inner(code, type, first_name, last_name, business_name, phone, address, city, id_type, id_number), loan_products!inner(name), branches!inner(name)",
+      )
+      .eq("id", id)
+      .single(),
+    supabase
+      .from("loan_collaterals")
+      .select(
+        "collaterals!inner(code, description, serial_no, plate_no, chassis_no, document_no, estimated_value_cents)",
+      )
+      .eq("loan_id", id)
+      .in("status", ["pledged", "seized"]),
+    supabase
+      .from("guarantors")
+      .select("full_name, phone, relationship, id_type, id_number")
+      .eq("loan_id", id)
+      .order("created_at"),
+    supabase.from("settings").select("value").eq("key", "templates").single(),
+    supabase.from("profiles").select("id, full_name"),
+    getCompany(),
+    getTranslations("pdf.agreement"),
+    // Installment loans: amounts from SQL (dates once the loan is paid out).
+    supabase.rpc("loan_document_schedule", { p_loan_id: id }),
+  ]);
   if (loanResult.error !== null || pledgesResult.error !== null || guarantorsResult.error !== null) {
     logServerError({ code: "PDF_READ", userId: staff.staff.id, where: "pdf.loan_agreement" });
     return new Response("Could not read the loan.", { status: 500 });
@@ -94,6 +104,15 @@ export async function GET(
   const customer = loan.customers;
   const people = new Map((peopleResult.data ?? []).map((person) => [person.id, person.full_name]));
   const templates = (templatesResult.data?.value ?? {}) as Record<string, unknown>;
+  const installments = loan.repayment_type === "installments";
+  const schedule = installments && scheduleResult.error === null ? scheduleResult.data : null;
+  // Installment loans have their own wording (interest once, penalties only after the final due date).
+  const termsTemplate =
+    installments && typeof templates.loan_agreement_installments === "string"
+      ? templates.loan_agreement_installments
+      : typeof templates.loan_agreement === "string"
+        ? templates.loan_agreement
+        : "";
   const companyName = company?.name ?? "";
   const verifyUrl = `${request.nextUrl.origin}/verify/${doc.token}`;
   const tIdTypes = await getTranslations("customers.form.idTypes");
@@ -121,8 +140,12 @@ export async function GET(
       principal: formatMoney(loan.principal_cents),
       interest: formatMoney(loan.interest_cents ?? 0),
       total: formatMoney(BigInt(loan.principal_cents) + BigInt(loan.interest_cents ?? 0)),
-      rate: t("rate", { rate: formatRateBps(loan.interest_rate_bps ?? 0), months: loan.term_months }),
-      term: t("term", { months: loan.term_months }),
+      rate: installments
+        ? t("rateOnce", { rate: formatRateBps(loan.interest_rate_bps ?? 0) })
+        : t("rate", { rate: formatRateBps(loan.interest_rate_bps ?? 0), months: loan.term_months }),
+      term: installments
+        ? t("termInstallments", { months: loan.term_months })
+        : t("term", { months: loan.term_months }),
       dueDate:
         loan.due_date === null ? t("dueAtPayout", { months: loan.term_months }) : formatDate(loan.due_date),
       purpose: loan.purpose ?? "",
@@ -136,7 +159,19 @@ export async function GET(
         [customer.address, customer.city].filter((part) => part !== null && part !== "").join(", ") ||
         t("none"),
     },
-    terms: fillTemplate(typeof templates.loan_agreement === "string" ? templates.loan_agreement : "", {
+    schedule:
+      schedule === null
+        ? null
+        : schedule.map((line) => ({
+            no: String(line.installment_no),
+            dueDate:
+              line.due_date === null
+                ? t("monthsAfterPayout", { count: line.installment_no })
+                : formatDate(line.due_date),
+            amount: formatMoney(line.amount_cents),
+          })),
+    terms: fillTemplate(termsTemplate, {
+      installments: String(loan.installment_count ?? ""),
       penalty_rate: formatRateBps(loan.penalty_rate_bps ?? 0),
       penalty_days: String(loan.penalty_period_days ?? ""),
       penalty_max: String(loan.penalty_max_periods ?? ""),
@@ -176,6 +211,11 @@ export async function GET(
       product: t("product"),
       purpose: t("purpose"),
       terms: t("terms"),
+      schedule: t("schedule"),
+      scheduleNote: t("scheduleNote"),
+      installmentNo: t("installmentNo"),
+      installmentDue: t("installmentDue"),
+      installmentAmount: t("installmentAmount"),
       collateral: t("collateral"),
       item: t("item"),
       description: t("description"),
@@ -247,6 +287,13 @@ async function receiptPdf(request: NextRequest, paymentId: string): Promise<Resp
       principal: formatMoney(receipt.allocation.principal),
     },
     balanceAfter: formatMoney(receipt.balanceAfterCents),
+    nextInstallment:
+      receipt.nextInstallment === null
+        ? null
+        : t("nextInstallmentValue", {
+            amount: formatMoney(receipt.nextInstallment.amountCents),
+            date: formatDate(receipt.nextInstallment.dueDate),
+          }),
     receivedBy: receipt.receivedBy,
     isVoid: receipt.isVoid,
     qrDataUrl: await QRCode.toDataURL(verifyUrl, { margin: 1, width: 256 }),
@@ -262,6 +309,7 @@ async function receiptPdf(request: NextRequest, paymentId: string): Promise<Resp
       interest: t("applied.interest"),
       principal: t("applied.principal"),
       balanceAfter: t("balanceAfter"),
+      nextInstallment: t("nextInstallment"),
       receivedBy: t("receivedBy"),
       authorized: t("authorized"),
       sumOf: t("sumOf"),

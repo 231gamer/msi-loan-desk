@@ -98,6 +98,12 @@ export async function customerCollateral(customerId: string): Promise<Collateral
     }));
 }
 
+export interface ScheduleLine {
+  installmentNo: number;
+  dueDate: string;
+  amountCents: string;
+}
+
 export type PreviewResult =
   | {
       ok: true;
@@ -107,8 +113,19 @@ export type PreviewResult =
       firstPenaltyOn: string | null;
       firstPenaltyCents: string | null;
       rateBps: number;
+      /* Installment products only: the schedule from installment_schedule (null for one payment). */
+      schedule: ScheduleLine[] | null;
     }
   | { ok: false; code: ErrorCode };
+
+function scheduleFrom(value: unknown): ScheduleLine[] | null {
+  if (!Array.isArray(value)) return null;
+  return value.map((line: Record<string, unknown>) => ({
+    installmentNo: Number(line.installment_no),
+    dueDate: String(line.due_date),
+    amountCents: String(line.amount_cents),
+  }));
+}
 
 /* preview_loan_terms (SPEC 5.1): the same SQL helpers as submission; no formula in TypeScript. */
 export async function previewLoan(values: TermsValues): Promise<PreviewResult> {
@@ -133,6 +150,7 @@ export async function previewLoan(values: TermsValues): Promise<PreviewResult> {
     firstPenaltyOn: typeof preview.first_penalty_on === "string" ? preview.first_penalty_on : null,
     firstPenaltyCents: preview.first_penalty_cents === null ? null : String(preview.first_penalty_cents),
     rateBps: Number(preview.interest_rate_bps),
+    schedule: scheduleFrom(preview.installments),
   };
 }
 

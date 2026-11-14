@@ -161,7 +161,12 @@ export async function saveTemplates(values: TemplatesValues): Promise<ActionResu
   const base = existing !== null && typeof existing === "object" && !Array.isArray(existing) ? existing : {};
   const code = await updateSetting(
     "templates",
-    { ...base, reminder: parsed.data.reminder, reminder_overdue: parsed.data.reminderOverdue },
+    {
+      ...base,
+      reminder: parsed.data.reminder,
+      reminder_overdue: parsed.data.reminderOverdue,
+      reminder_installment: parsed.data.reminderInstallment,
+    },
     "settings.saveTemplates",
     admin.userId,
   );
@@ -403,6 +408,8 @@ export async function saveProduct(values: ProductValues): Promise<ActionResult<{
       ...(parsed.data.id === undefined ? {} : { id: parsed.data.id }),
       name: parsed.data.name,
       interest_rate_bps: interest,
+      repayment_type: parsed.data.repaymentType,
+      min_term_months: Number.parseInt(parsed.data.minTermMonths, 10),
       default_term_months: Number.parseInt(parsed.data.defaultTermMonths, 10),
       max_term_months: Number.parseInt(parsed.data.maxTermMonths, 10),
       penalty_rate_bps: penalty,

@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { CheckboxRow, Field, Panel, describedBy, inputClass } from "@/components/forms/fields";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ export interface ProductRow {
   id: string;
   name: string;
   interestRateBps: number;
+  repaymentType: "single" | "installments";
+  minTermMonths: number;
   defaultTermMonths: number;
   maxTermMonths: number;
   penaltyRateBps: number;
@@ -34,6 +36,8 @@ export interface ProductRow {
 const EMPTY: ProductValues = {
   name: "",
   interestRate: "20",
+  repaymentType: "single",
+  minTermMonths: "1",
   defaultTermMonths: "1",
   maxTermMonths: "3",
   penaltyRate: "20",
@@ -49,6 +53,8 @@ function toValues(product: ProductRow): ProductValues {
     id: product.id,
     name: product.name,
     interestRate: bpsToInput(product.interestRateBps),
+    repaymentType: product.repaymentType,
+    minTermMonths: String(product.minTermMonths),
     defaultTermMonths: String(product.defaultTermMonths),
     maxTermMonths: String(product.maxTermMonths),
     penaltyRate: bpsToInput(product.penaltyRateBps),
@@ -74,11 +80,14 @@ export function ProductsPanel({ products }: { products: ProductRow[] }) {
           label={t("heading")}
           className="-mx-4 border-y border-line sm:mx-0 sm:rounded-control sm:border"
         >
-          <table className="w-full min-w-[640px] border-collapse text-sm">
+          <table className="w-full min-w-[760px] border-collapse text-sm">
             <thead className="bg-subtle text-left text-xs font-semibold text-ink-muted">
               <tr>
                 <th scope="col" className="px-3 py-2.5">
                   {t("name")}
+                </th>
+                <th scope="col" className="px-3 py-2.5">
+                  {t("fields.repaymentType")}
                 </th>
                 <th scope="col" className="px-3 py-2.5">
                   {t("interest")}
@@ -101,11 +110,20 @@ export function ProductsPanel({ products }: { products: ProductRow[] }) {
               {products.map((product) => (
                 <tr key={product.id} className="border-t border-page">
                   <td className="px-3 py-3 font-semibold">{product.name}</td>
+                  <td className="px-3 py-3">{t(`repayment.${product.repaymentType}`)}</td>
                   <td className="px-3 py-3">
-                    {t("interestValue", { rate: formatRateBps(product.interestRateBps) })}
+                    {t(product.repaymentType === "installments" ? "interestOnceValue" : "interestValue", {
+                      rate: formatRateBps(product.interestRateBps),
+                    })}
                   </td>
                   <td className="px-3 py-3">
-                    {t("termValue", { term: product.defaultTermMonths, max: product.maxTermMonths })}
+                    {product.minTermMonths > 1
+                      ? t("termRangeValue", {
+                          term: product.defaultTermMonths,
+                          min: product.minTermMonths,
+                          max: product.maxTermMonths,
+                        })
+                      : t("termValue", { term: product.defaultTermMonths, max: product.maxTermMonths })}
                   </td>
                   <td className="px-3 py-3">
                     {t("penaltyValue", {
@@ -150,6 +168,7 @@ export function ProductsPanel({ products }: { products: ProductRow[] }) {
 
 const NUMBER_FIELDS = [
   ["interestRate", "decimal"],
+  ["minTermMonths", "numeric"],
   ["defaultTermMonths", "numeric"],
   ["maxTermMonths", "numeric"],
   ["penaltyRate", "decimal"],
@@ -167,9 +186,17 @@ function ProductForm({ product, onDone }: { product: ProductRow | null; onDone: 
     resolver: zodResolver(productSchema),
     defaultValues: product === null ? EMPTY : toValues(product),
   });
+  const repaymentType = useWatch({ control: form.control, name: "repaymentType" });
   const error = (name: keyof ProductValues) => {
     const key = form.formState.errors[name]?.message;
-    if (key === "percent" || key === "wholeNumber" || key === "termOrder") return t(`validation.${key}`);
+    if (
+      key === "percent" ||
+      key === "wholeNumber" ||
+      key === "termOrder" ||
+      key === "minOrder" ||
+      key === "installmentMin"
+    )
+      return t(`validation.${key}`);
     return validation(key);
   };
 
@@ -199,9 +226,24 @@ function ProductForm({ product, onDone }: { product: ProductRow | null; onDone: 
           {...form.register("name")}
         />
       </Field>
+      <Field id="product-repaymentType" label={t("fields.repaymentType")}>
+        <select id="product-repaymentType" className={inputClass} {...form.register("repaymentType")}>
+          <option value="single">{t("repayment.single")}</option>
+          <option value="installments">{t("repayment.installments")}</option>
+        </select>
+      </Field>
       <div className="grid gap-4 sm:grid-cols-3">
         {NUMBER_FIELDS.map(([name, inputMode]) => (
-          <Field key={name} id={`product-${name}`} label={t(`fields.${name}`)} error={error(name)}>
+          <Field
+            key={name}
+            id={`product-${name}`}
+            label={
+              name === "interestRate" && repaymentType === "installments"
+                ? t("fields.interestOnce")
+                : t(`fields.${name}`)
+            }
+            error={error(name)}
+          >
             <input
               id={`product-${name}`}
               inputMode={inputMode}
@@ -219,7 +261,9 @@ function ProductForm({ product, onDone }: { product: ProductRow | null; onDone: 
           </select>
         </Field>
       </div>
-      <p className="text-xs leading-5 text-ink-muted">{t("snapshotNote")}</p>
+      <p className="text-xs leading-5 text-ink-muted">
+        {t(repaymentType === "installments" ? "snapshotNoteInstallments" : "snapshotNote")}
+      </p>
       <CheckboxRow id="product-active" label={t("fields.active")} {...form.register("active")} />
       <StatusMessage status={status} />
       <div className="flex flex-wrap gap-2">

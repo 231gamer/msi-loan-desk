@@ -155,6 +155,17 @@ async function ReceiptContent({ params }: PageProps<"/receipts/[id]">) {
               <dt>{t("balanceAfter")}</dt>
               <dd className="tabular">{formatMoney(receipt.balanceAfterCents)}</dd>
             </div>
+            {receipt.nextInstallment === null ? null : (
+              <div className="flex justify-between gap-3" data-testid="receipt-next-installment">
+                <dt>{t("nextInstallment")}</dt>
+                <dd className="tabular font-semibold">
+                  {t("nextInstallmentValue", {
+                    amount: formatMoney(receipt.nextInstallment.amountCents),
+                    date: formatDate(receipt.nextInstallment.dueDate),
+                  })}
+                </dd>
+              </div>
+            )}
           </dl>
 
           <div className="mt-6 grid grid-cols-2 gap-4 text-sm">

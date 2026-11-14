@@ -2,6 +2,17 @@
 
 All notable changes, one section per phase. Format follows Keep a Changelog.
 
+## [Installment loans] 2026-11-14 (branch `feature/installment-loans`, not yet deployed)
+### Added
+- Installment loans (SPEC addendum A): product type with interest charged once and equal monthly installments (the last takes the cents left over), first due one month after payout. Seeded product "Installment loan (monthly)": 20% once, 2 to 6 months, the standard late-payment rules.
+- Within the term nothing extra is charged; an unpaid installment makes the loan "behind schedule". After the final due date the existing overdue, penalty and recovery rules apply.
+- Settings → Loan products: repayment type and shortest term. WhatsApp: an installment reminder text.
+- Wizard: schedule and total on the amount and review steps. Loan page: Repayment schedule card; Outstanding shows the next installment and arrears. Approval card: "4 × $600.00 monthly".
+- Due and overdue, Today, dashboard and the Due report: the installment due, and a "Behind schedule" group. Payment form: the installment due as a suggested amount. Receipt: "Next installment". Statement and agreement PDFs: the schedule; the agreement uses its own installment wording.
+- `docs/USER_GUIDE.md`, `docs/ROLES.md` (no new permissions), SPEC addendum A, `tools/vectors.py` installment vectors; pgTAP 38 to 40 and an end-to-end test.
+### Unchanged
+- One-payment products and every existing loan: interest per month, one due date, the same screens and documents. Loan extensions are not offered for installment loans.
+
 ## [Dashboard improvements] 2026-11-14
 ### Added
 - Desktop sidebar: an icon on every menu item; "Collapse menu" turns it into a 72px icon rail and "Expand menu" brings the labels back; the choice is remembered on the device.

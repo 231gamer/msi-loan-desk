@@ -29,6 +29,11 @@ export type AgreementLabels = Record<
   | "product"
   | "purpose"
   | "terms"
+  | "schedule"
+  | "scheduleNote"
+  | "installmentNo"
+  | "installmentDue"
+  | "installmentAmount"
   | "collateral"
   | "item"
   | "description"
@@ -67,6 +72,8 @@ export interface AgreementData {
   };
   borrower: { name: string; code: string; id: string; phone: string; address: string };
   terms: string;
+  /** Installment loans: the repayment schedule (dates empty until the loan is paid out). */
+  schedule: Array<{ no: string; dueDate: string; amount: string }> | null;
   collateral: Array<{ code: string; description: string; identifier: string; value: string }>;
   guarantors: Array<{ name: string; relationship: string; phone: string; id: string }>;
   labels: AgreementLabels;
@@ -75,7 +82,16 @@ export interface AgreementData {
 const colors = { primary: "#32207E", ink: "#0F172A", muted: "#475569", line: "#CBD5E1", tint: "#F1F5F9" };
 
 const styles = StyleSheet.create({
-  page: { padding: 36, fontSize: 9.5, color: colors.ink, fontFamily: "Helvetica", lineHeight: 1.4 },
+  // The bottom padding keeps room for the fixed footer (verify link and QR code, about 64pt high) on
+  // every page, so long terms flow to the next page instead of running under it.
+  page: {
+    padding: 36,
+    paddingBottom: 104,
+    fontSize: 9.5,
+    color: colors.ink,
+    fontFamily: "Helvetica",
+    lineHeight: 1.4,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -172,6 +188,31 @@ function Agreement({ data }: { data: AgreementData }) {
             {data.loan.purpose !== "" ? <Detail label={l.purpose} value={data.loan.purpose} /> : null}
           </View>
         </View>
+
+        {data.schedule === null ? null : (
+          <View style={styles.section} wrap={false}>
+            <Text style={styles.heading}>{l.schedule}</Text>
+            <View style={styles.table}>
+              <View style={styles.row}>
+                <Text style={[styles.th, { width: "20%" }]}>{l.installmentNo}</Text>
+                <Text style={[styles.th, { width: "45%" }]}>{l.installmentDue}</Text>
+                <Text style={[styles.th, { width: "35%", textAlign: "right" }]}>{l.installmentAmount}</Text>
+              </View>
+              {data.schedule.map((line) => (
+                <View key={line.no} style={styles.row}>
+                  <Text style={{ width: "20%" }}>{line.no}</Text>
+                  <Text style={{ width: "45%" }}>{line.dueDate}</Text>
+                  <Text style={{ width: "35%", textAlign: "right" }}>{line.amount}</Text>
+                </View>
+              ))}
+              <View style={styles.row}>
+                <Text style={[styles.th, { width: "65%" }]}>{l.total}</Text>
+                <Text style={[styles.th, { width: "35%", textAlign: "right" }]}>{data.loan.total}</Text>
+              </View>
+            </View>
+            <Text style={styles.muted}>{l.scheduleNote}</Text>
+          </View>
+        )}
 
         <View style={styles.section}>
           <Text style={styles.heading}>{l.terms}</Text>

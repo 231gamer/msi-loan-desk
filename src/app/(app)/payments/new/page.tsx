@@ -13,6 +13,7 @@ import { formatDate, formatMoney } from "@/lib/format";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
+import { installmentSuggestion } from "../installment-suggestion";
 import { PaymentForm } from "../payment-form";
 import { SubmitButton } from "@/components/ui/pending";
 
@@ -92,8 +93,9 @@ async function NewPaymentContent({ searchParams }: PageProps<"/payments/new">) {
     daysOverdue: number;
   } | null = null;
   let initial = null;
+  let suggestion = null;
   if (loanParam !== "") {
-    const [{ data: loan }, { data: balance }, preview] = await Promise.all([
+    const [{ data: loan }, { data: balance }, preview, nextInstallment] = await Promise.all([
       supabase
         .from("loans")
         .select("id, loan_no, status, customers!inner(type, first_name, last_name, business_name)")
@@ -101,7 +103,9 @@ async function NewPaymentContent({ searchParams }: PageProps<"/payments/new">) {
         .maybeSingle(),
       supabase.from("loan_balances").select("days_overdue").eq("loan_id", loanParam).maybeSingle(),
       supabase.rpc("preview_payment", { p_loan_id: loanParam, p_amount_cents: 0 }),
+      installmentSuggestion(supabase, loanParam),
     ]);
+    suggestion = nextInstallment;
     if (loan !== null) {
       chosen = {
         id: loan.id,
@@ -221,6 +225,7 @@ async function NewPaymentContent({ searchParams }: PageProps<"/payments/new">) {
             cancelHref={`/loans/${chosen.id}`}
             todayLabel={formatDate(today)}
             initial={initial}
+            suggestion={suggestion}
           />
         ) : null}
         {loanParam === "" && q.length < 2 ? (

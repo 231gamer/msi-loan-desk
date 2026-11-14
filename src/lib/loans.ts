@@ -33,6 +33,7 @@ export type LoanPill =
       tone: BadgeTone;
     }
   | { key: "overdue"; tone: BadgeTone; days: number }
+  | { key: "behind"; tone: BadgeTone; days: number }
   | { key: "closedOn"; tone: BadgeTone; date: string };
 
 const RECENT_DAYS = 30;
@@ -63,6 +64,9 @@ export function loanPill(loan: LoanStatusInput): LoanPill {
       return { key: "cancelled", tone: "pending" };
     case "written_off":
       return { key: "writtenOff", tone: "pending" };
+    case "behind":
+      // An installment loan inside its term with an installment unpaid: followed up, not overdue.
+      return { key: "behind", tone: "due", days: loan.daysOverdue };
     default: {
       // active or overdue
       if (loan.totalOutCents > 0n && loan.daysOverdue > 0) {
@@ -77,3 +81,22 @@ export function loanPill(loan: LoanStatusInput): LoanPill {
 /** Tabs on /loans (mock-up 06). */
 export const LOAN_TABS = ["all", "active", "dueToday", "overdue", "recovery", "pending", "closed"] as const;
 export type LoanTab = (typeof LOAN_TABS)[number];
+
+/*
+ * Installments (SPEC addendum "Installment loans"). Their status is worked out in SQL from the
+ * ledger (loan_installment_rows); these map it to the words and colours on screen.
+ */
+export const INSTALLMENT_STATUSES = ["paid", "part_paid", "due", "behind", "not_due"] as const;
+export type InstallmentStatus = (typeof INSTALLMENT_STATUSES)[number];
+
+export function installmentStatus(value: unknown): InstallmentStatus {
+  return INSTALLMENT_STATUSES.find((status) => status === value) ?? "not_due";
+}
+
+export const INSTALLMENT_TONE: Record<InstallmentStatus, BadgeTone> = {
+  paid: "active",
+  part_paid: "due",
+  due: "due",
+  behind: "overdue",
+  not_due: "pending",
+};
