@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { SubmitButton } from "@/components/ui/pending";
 import { isActive } from "@/lib/navigation";
+import { InstallAppItem } from "@/components/pwa/install-app-item";
 import { useSignOutGuard } from "@/components/pwa/use-sign-out-guard";
 import { cn } from "@/lib/utils";
 
@@ -122,6 +123,7 @@ export function BottomNav({
               <KeyRound aria-hidden="true" className="size-5" />
               {labels.changePassword}
             </Link>
+            <InstallAppItem />
           </div>
           <form action="/auth/sign-out" method="post" onSubmit={guardSignOut} className="mx-3">
             <SubmitButton className="flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-sm font-semibold text-ink hover:bg-page">

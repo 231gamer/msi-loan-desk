@@ -2689,5 +2689,15 @@
       "review": "Review",
       "signOutWarning": "{count, plural, one {# payment taken offline has} other {# payments taken offline have}} not been sent yet. {count, plural, one {It stays} other {They stay}} on this phone and will send the next time you sign in here. Sign out anyway?"
     }
+  },
+  "install": {
+    "button": "Install app",
+    "steps": {
+      "ios1": "Tap the Share button (the square with an arrow) in the browser.",
+      "ios2": "Scroll down and choose \"Add to Home Screen\".",
+      "ios3": "Tap \"Add\". The app now opens from its own icon.",
+      "android1": "Open the browser menu (⋮ at the top right).",
+      "android2": "Choose \"Install app\" or \"Add to Home screen\"."
+    }
   }
 }

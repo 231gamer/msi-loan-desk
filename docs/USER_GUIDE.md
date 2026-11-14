@@ -4,10 +4,11 @@ For MSI staff. Each section says who does the step. Money is in US dollars; date
 
 ## Installing the app and working offline
 
-### Install on an Android phone
-1. Open the LoanDesk address in Chrome and sign in.
-2. Chrome shows "Install app" (or open the ⋮ menu and choose "Install app" / "Add to Home screen").
-3. LoanDesk now opens from its own icon, full screen. Updates arrive by themselves.
+### Install on a phone
+- Sign in, open **More** and tap **Install app**. On Android, Chrome asks to install; tap **Install**.
+- On an iPhone, the steps appear instead: tap the browser's **Share** button, choose **Add to Home Screen**, then **Add**.
+- The app then opens from its own icon, full screen. Updates arrive by themselves.
+- On an iPhone, payments taken offline send when the app is opened with signal (iPhones do not send in the background).
 
 ### Field cash without signal (loan officers)
 - Open **Field cash** once a day with signal. Your list is then saved on the phone for 72 hours.

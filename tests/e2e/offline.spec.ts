@@ -79,6 +79,19 @@ test.describe("installable app and offline field cash (SPEC addendum B)", () => 
     await expectNoSeriousA11yIssues(page);
   });
 
+  test("the More menu offers Install app with the steps when the browser has no install dialog", async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== "phone-390", "the More menu is the phone navigation");
+    await signInAs(page, fixtureUser("cashier"));
+    await page.getByRole("button", { name: "More" }).click();
+    const install = page.getByRole("button", { name: "Install app" });
+    await expect(install).toBeVisible();
+    await install.click();
+    await expect(page.getByText('Choose "Install app" or "Add to Home screen".')).toBeVisible();
+    await expectNoSeriousA11yIssues(page);
+  });
+
   test("the sync address refuses other sites, signed-out visitors and other roles", async ({ page }) => {
     const payload = {
       key: randomUUID(),

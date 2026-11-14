@@ -9,6 +9,7 @@ All notable changes, one section per phase. Format follows Keep a Changelog.
 - Offline field cash for loan officers: the officer's own list is saved on the phone when Field cash opens; offline, Collect saves the payment on the phone and shows a provisional slip; payments send themselves when signal returns (recorded once, dated the day they arrive, the reference keeps the collection time). Refused payments are shown with the reason.
 - Field cash shows payments still waiting to send or refused; sign-out warns about unsent payments, which stay on the phone until sent. The saved list is wiped on sign-out and after 72 hours without a sync.
 - `POST /api/field/payments` (loan officers; same-site requests only) and an end-to-end offline test.
+- More menu (phones and tablets): "Install app". Android Chrome opens its install dialog; on iPhone, or when the browser has not offered it, the steps are shown. Hidden once installed.
 
 ## [Installment loans] 2026-11-14 (PR #4, deployed to live 2026-11-14)
 ### Added
